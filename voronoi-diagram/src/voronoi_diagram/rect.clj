@@ -16,3 +16,9 @@
 (defn new-rect [x1 y1 x2 y2]
   {:x1 x1 :x2 x2 :y1 y1 :y2 y2})
 
+(defn next-site [r1 r2 new-pt]
+  (let [new-seg (filter (partial seg/pt-on-seg? new-pt) (concat r1 r2))]
+    (new-seg :neighbor)))
+
+(defn merge-rects [left-rec right-rec])
+

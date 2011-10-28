@@ -2,11 +2,7 @@
   (require [voronoi-diagram.rect :as rect]))
 
 (defn voronoi-diagram-merge [left-rec right-rec]
-  ;; Get the sites that contain the upper-right corner of left-rec
-  ;; and the upper-left corner of right-rec
-
-  ;; Find their bisector within their diagrams
-  )
+  (rect/merge-rects left-rec right-rec))
 
 (defn voronoi-diagram-divide-conquer [bounding-rect sites]
   (let [num-sites (count sites)]
