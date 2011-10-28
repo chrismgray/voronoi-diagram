@@ -40,7 +40,8 @@
     {:e1 e1 :e2 e2 :neighbor (first neighbor) :slope slope :y-intercept y-intercept}))
 
 (defn all-same? [pred coll]
-  (every? #(or (pred %) ((complement pred) %)) coll))
+  (or (every? pred coll)
+      (not-any? pred coll)))
 
 (defn pt-within-seg-range? [pt seg]
   (let [pt-x (pt :x)
