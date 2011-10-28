@@ -78,7 +78,9 @@
 (defn find-bisector
   "Takes the pts defined by sites s1 and s2 and their regions.
    Returns the bisector of s1 and s2 inside the intersection of their
-   regions if we pretend that the bounding boxes don't exist."
+   regions if we pretend that the bounding boxes don't exist.
+
+  We assume that s1 is to the left of s2."
   [s1 s2 r1 r2 bounding-box-x]
   (let [s1-x (s1 :x)
         s1-y (s1 :y)
@@ -95,6 +97,8 @@
                                     (map (partial seg-intersection dummy-seg))
                                     (filter nil?)
                                     (filter pt-on-seg?)
-                                    (remove #(= bounding-box-x (% :x))))]
+                                    (remove #(= bounding-box-x (% :x)))
+                                    (sort-by :y))]
     (assert (= 2 (count possible-intersections)))
-    possible-intersections))
+    [(apply new-seg (conj possible-intersections s1))
+     (apply new-seg (conj (reverse possible-intersections) s2))]))
