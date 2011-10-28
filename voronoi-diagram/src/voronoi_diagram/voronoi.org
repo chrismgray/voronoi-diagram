@@ -1,0 +1,122 @@
+#+TITLE: Voronoi Diagram Computation
+#+AUTHOR: Chris Gray
+#+OPTIONS: toc:nil
+
+  This is a divide-and-conquer algorithm for computing the Voronoi
+  Diagram of a set of points within a given bounding box.  The points
+  must all be inside the bounding box.  If all goes correctly, this
+  should be a \(\Theta(n \log n)\) implementation of the algorithm.
+
+  The major difficulty in implementing this algorithm is in the merge
+  step.  There are a few areas of difficulty here:
+  - Choosing the correct data structures will be difficult.
+  - Keeping things \(O(n)\) in the merge step.
+
+  Overcoming the second difficulty probably depends on choosing well
+  for during the first.
+
+  The general algorithm to merge two sets of sites whose Voronoi
+  Diagrams (VDs) within their bounding rectangles has already been
+  computed is as follows.  We compute a path that bisects the two sets
+  of sites.  We then update the VD regions for the sites that were
+  affected.  We call the path that we computed the "bisector-path".
+  This path is computed by finding the bisecting segment between two
+  sites inside the intersection of the VD regions of those two sites.
+  This is done for every pair of sites that have intersecting VD
+  regions.  It can be found sequentially by looking at one of the
+  neighbors of the segment that the bisector hits.
+
+  
+* Data structures
+
+  The following data structures exist:
+  
+** Rectangle
+
+   The bounding rectangle.  These are what we merge.  Each rectangle
+   has the following parameters:
+
+*** Sites
+
+    A list of the sites in the rectangle.
+
+*** Polygons
+
+    A list of the polygons (VD regions) in the rectangle.  This list
+    is in the same order as the sites.  Each polygon is stored as a
+    list of segments.
+    
+*** x1, y1, x2, y2
+
+    The coordinates of the top-left and bottom-right corner of the
+    polygon respectively.
+    
+*** x1-site, x2-site
+
+    A pointer to the site whose VD region contains \((x_1, y_1)\) and
+    \((x_2, y_1)\) resepectively.  These are for convenience.  At
+    least one of these sites is the first used to compute the
+    bisector-path between the two sets of sites to be merged.
+
+** Segment
+
+   A segment.  Most segments in this case are part of a VD region.
+   Each segment contains the following parameters:
+
+*** e1, e2
+
+    The endpoints of the segment.
+
+*** Neighbor (optional)
+
+    The site of the neighboring VD region.  Any segment that is along
+    one of the edges of the bounding box will not have a neighboring
+    VD region and will thus have a neighbor that is set to
+    \(\emptyset\).
+
+    
+** Point
+
+   A two-dimensional point.  Points are used as sites and as endpoints for
+   segments.  As expected, points have parameters named \(x\) and \(y\).
+
+
+* Important Subroutines
+
+  In this section, we discuss some of the more difficult subroutines
+  to implement.
+  
+** Finding the bisector between two sites
+
+   The most basic problem in finding Voronoi Diagram regions is
+   finding the bisector between two sites.  When we are using the
+   divide-and-conquer method, we are already given two VD regions and
+   must find the bisector inside the intersection of the regions (if
+   we pretend that the bounding boxes don't exist).
+
+   The bisector between two points is line that passes through the
+   midpoint of the line segment between these two points and that is
+   perpendicular to that line segment.  The fact that it is
+   perpendicular means that we must find the negative reciprocal of
+   the slope of the segment between the two sites.  We represent
+   infinite slopes by a value of =:infinity=.
+
+   We must also find the place where bisector intersects the VD
+   regions.  This is essentially done by solving an equation of two
+   variables and two unknowns.  If the solution to this equation is
+   outside the segment, then we know that the segment and the bisector
+   do not intersect.
+
+   
+** Finding the first pair of sites to examine when merging
+
+   One of the sites of the pair is either the =x1-site= of the
+   bounding rectangle to the right or the =x2-site= of the bounding
+   rectangle to the left.  WLOG, we assume that the site is the
+   =x1-site= of the rectangle to the right.  We first check the
+   =x2-site= of the rectangle to the left, and while the bisector of
+   the sites does not hit the top or left edge of the bounding
+   rectangle, we move counterclockwise around the bounding rectangle.
+   
+
+   
