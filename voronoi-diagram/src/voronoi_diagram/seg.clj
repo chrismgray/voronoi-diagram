@@ -94,9 +94,10 @@
                     (new-seg midpoint (pt/new-pt (midpoint :x)) (inc (midpoint :y)))
                     (new-seg midpoint (pt/new-pt 0 y-intercept)))
         possible-intersections (->> (concat r1 r2)
-                                    (map (partial seg-intersection dummy-seg))
-                                    (filter nil?)
-                                    (filter pt-on-seg?)
+                                    (map (fn [x] [(seg-intersection dummy-seg x) x]))
+                                    (remove #(nil? (first %)))
+                                    (filter #(pt-on-seg? (first %) (second %)))
+                                    (map first)
                                     (remove #(= bounding-box-x (% :x)))
                                     (sort-by :y))]
     (assert (= 2 (count possible-intersections)))
