@@ -39,16 +39,17 @@
         y-intercept (possibly-infinite (- (e1 :y) (possibly-infinite (* slope (e1 :x)))))]
     {:e1 e1 :e2 e2 :neighbor (first neighbor) :slope slope :y-intercept y-intercept}))
 
+(defn all-same? [pred coll]
+  (every? #(or (pred %) ((complement pred) %)) coll))
+
 (defn pt-within-seg-range? [pt seg]
   (let [pt-x (pt :x)
         pt-y (pt :y)
         x-diffs (map #(- pt-x (get-in seg [% :x])) '(:e1 :e2))
         y-diffs (map #(- pt-y (get-in seg [% :y])) '(:e1 :e2))]
     (and
-     (or (not-any? #(> 0 %) x-diffs)
-         (every? #(>= 0 %) x-diffs))
-     (or (not-any? #(> 0 %) y-diffs)
-         (every? #(>= 0 %) y-diffs)))))
+     (all-same? #(> 0 %) x-diffs)
+     (all-same? #(> 0 %) y-diffs))))
 
 (defn pt-on-seg? [pt seg]
   (if (= :infinity (seg :slope))
