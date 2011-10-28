@@ -75,6 +75,10 @@
     \(\emptyset\).
 
     
+*** Slope and y-intercept
+
+    These are easily computed.
+    
 ** Point
 
    A two-dimensional point.  Points are used as sites and as endpoints for
