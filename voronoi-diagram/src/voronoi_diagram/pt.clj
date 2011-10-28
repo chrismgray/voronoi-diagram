@@ -1,4 +1,4 @@
 (ns voronoi-diagram.pt)
 
-(defn new [x y]
+(defn new-pt [x y]
   {:x x :y y})
