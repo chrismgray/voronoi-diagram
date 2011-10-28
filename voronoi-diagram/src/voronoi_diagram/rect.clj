@@ -13,6 +13,6 @@
       (update-x1-site site)
       (update-x2-site site)))
 
-(defn new [x1 y1 x2 y2]
+(defn new-rect [x1 y1 x2 y2]
   {:x1 x1 :x2 x2 :y1 y1 :y2 y2})
 
