@@ -42,9 +42,9 @@
 
 *** Polygons
 
-    A list of the polygons (VD regions) in the rectangle.  This list
-    is in the same order as the sites.  Each polygon is stored as a
-    list of segments.
+    A map of the polygons (VD regions) in the rectangle.  The keys of
+    the map are the sites.  Each polygon is stored as a list of
+    segments.
     
 *** x1, y1, x2, y2
 
@@ -121,6 +121,4 @@
    =x2-site= of the rectangle to the left, and while the bisector of
    the sites does not hit the top or left edge of the bounding
    rectangle, we move counterclockwise around the bounding rectangle.
-   
-
    
