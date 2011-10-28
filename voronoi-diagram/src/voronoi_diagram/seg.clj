@@ -35,9 +35,27 @@
            (* ~@args))))))
 
 (defn new [e1 e2 & neighbor]
-  (if (empty? neighbor)
-    {:e1 e1 :e2 e2 :neighbor nil}
-    {:e1 e1 :e2 e2 :neighbor (first neighbor)}))
+  (let [slope (possibly-infinite (/ (- (e1 :y) (e2 :y)) (- (e1 :x) (e2 :x))))
+        y-intercept (possibly-infinite (- (e1 :y) (possibly-infinite (* slope (e1 :x)))))]
+    {:e1 e1 :e2 e2 :neighbor (first neighbor) :slope slope :y-intercept y-intercept}))
+
+(defn pt-within-seg-range? [pt seg]
+  (let [pt-x (pt :x)
+        pt-y (pt :y)
+        x-diffs (map #(- pt-x (get-in seg [% :x])) '(:e1 :e2))
+        y-diffs (map #(- pt-y (get-in seg [% :y])) '(:e1 :e2))]
+    (and
+     (or (not-any? #(> 0 %) x-diffs)
+         (every? #(>= 0 %) x-diffs))
+     (or (not-any? #(> 0 %) y-diffs)
+         (every? #(>= 0 %) y-diffs)))))
+
+(defn pt-on-seg? [pt seg]
+  (if (= :infinity (seg :slope))
+    (and (= (pt :x) (get-in seg [:e1 :x]))
+         (pt-within-seg-range? pt seg))
+    (and (= (pt :y) (+ (* (seg :slope) (pt :x)) (seg :y-intercept)))
+         (pt-within-seg-range? pt seg))))
 
 (defn find-bisector
   "Takes the pts defined by sites s1 and s2 and their regions.
