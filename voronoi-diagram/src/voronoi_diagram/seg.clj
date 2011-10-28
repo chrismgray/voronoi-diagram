@@ -87,21 +87,14 @@
         original-slope (possibly-infinite (/ (- s2-y s1-y) (- s2-x s1-x)))
         bisector-slope (possibly-infinite (- (possibly-infinite (/ 1 original-slope))))
         midpoint (pt/new-pt (/ (+ s1-x s2-x) 2) (/ (+ s1-y s2-y) 2))
-        ]
-    (if (= bisector-slope :infinity)
-      ;; Find the segs directly above and below the midpoint
-      (let [dummy-seg (new-seg midpoint (pt/new-pt (midpoint :x) (inc (midpoint :y))))
-            possible-intersections (->> (concat r1 r2)
-                                        (map (partial seg-intersection dummy-seg))
-                                        (filter pt-on-seg?)
-                                        (remove #(= bounding-box-x (% :x))))]
-        (assert (= 2 (count possible-intersections)))
-        possible-intersections)
-      (let [y-intercept (- (midpoint :y) (* bisector-slope (midpoint :x)))
-            dummy-seg (new-seg midpoint (pt/new-pt 0 y-intercept))
-            possible-intersections (->> (concat r1 r2)
-                                        (map (partial seg-intersection dummy-seg))
-                                        (filter pt-on-seg?)
-                                        (remove #(= bounding-box-x (% :x))))]
-        (assert (= 2 (count possible-intersections)))
-        possible-intersections))))
+        y-intercept (if (infinite? bisector-slope) nil (- (midpoint :y) (* bisector-slope (midpoint :x))))
+        dummy-seg (if (infinite? bisector-slope)
+                    (new-seg midpoint (pt/new-pt (midpoint :x)) (inc (midpoint :y)))
+                    (new-seg midpoint (pt/new-pt 0 y-intercept)))
+        possible-intersections (->> (concat r1 r2)
+                                    (map (partial seg-intersection dummy-seg))
+                                    (filter nil?)
+                                    (filter pt-on-seg?)
+                                    (remove #(= bounding-box-x (% :x))))]
+    (assert (= 2 (count possible-intersections)))
+    possible-intersections))
