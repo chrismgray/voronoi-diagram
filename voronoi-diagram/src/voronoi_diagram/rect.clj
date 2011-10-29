@@ -1,5 +1,5 @@
 (ns voronoi-diagram.rect
-  (require [voronoi-diagram.site :as site]))
+  (require [voronoi-diagram.seg :as seg]))
 
 (defn update [which rect val]
   (assoc rect which val))
