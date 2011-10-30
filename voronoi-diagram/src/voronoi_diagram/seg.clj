@@ -64,7 +64,7 @@
         midpoint (pt/new-pt (/ (+ s1-x s2-x) 2) (/ (+ s1-y s2-y) 2))
         y-intercept (if (infinite? bisector-slope) nil (- (midpoint :y) (* bisector-slope (midpoint :x))))
         dummy-seg (if (infinite? bisector-slope)
-                    (new-seg midpoint (pt/new-pt (midpoint :x)) (inc (midpoint :y)))
+                    (new-seg midpoint (pt/new-pt (midpoint :x) (inc (midpoint :y))))
                     (new-seg midpoint (pt/new-pt (inc (midpoint :x)) (+ (* bisector-slope (inc (midpoint :x))) y-intercept))))
         possible-intersections (->> (concat r1 r2)
                                     (map (fn [x] [(seg-intersection dummy-seg x) x]))
@@ -75,6 +75,7 @@
                                     (set)
                                     (sort-by :y >)
                                     (vec))]
-    (assert (= 2 (count possible-intersections)))
-    [(apply new-seg (conj possible-intersections s1))
-     (apply new-seg (conj (reverse possible-intersections) s2))]))
+    (if (empty? possible-intersections)
+      nil
+      [(new-seg (first possible-intersections) (second possible-intersections) s1)
+       (new-seg (second possible-intersections) (first possible-intersections) s2)])))
