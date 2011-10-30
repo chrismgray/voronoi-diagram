@@ -12,14 +12,21 @@
   (or (every? pred coll)
       (not-any? pred coll)))
 
+(def all-different? (complement all-same?))
+
 (defn pt-within-seg-range? [pt seg]
   (let [pt-x (pt :x)
         pt-y (pt :y)
         x-diffs (map #(- pt-x (get-in seg [% :x])) '(:e1 :e2))
         y-diffs (map #(- pt-y (get-in seg [% :y])) '(:e1 :e2))]
-    (and
-     (all-same? #(> 0 %) x-diffs)
-     (all-same? #(> 0 %) y-diffs))))
+    ((comp not nil?)
+     (or (and
+          (all-different? #(> 0 %) x-diffs)
+          (all-different? #(> 0 %) y-diffs))
+         (and (some #(= 0 %) x-diffs)
+              (all-different? #(> 0 %) y-diffs))
+         (and (some #(= 0 %) y-diffs)
+              (all-different? #(> 0 %) x-diffs))))))
 
 (defn pt-on-seg? [pt seg]
   (if (infinite? (seg :slope))
@@ -34,9 +41,12 @@
     (if (infinite? (s1 :slope))
       (let [x (get-in s1 [:e1 :x])]
         (pt/new-pt x (+ (* (s2 :slope) x) (s2 :y-intercept))))
-      (let [x (possibly-infinite (/ (- (s2 :y-intercept) (s1 :y-intercept))
-                                    (- (s1 :slope) (s2 :slope))))]
-        (pt/new-pt x (+ (* (s1 :slope) x) (s1 :y-intercept)))))))
+      (if (infinite? (s2 :slope))
+        (let [x (get-in s2 [:e1 :x])]
+          (pt/new-pt x (+ (* (s1 :slope) x) (s1 :y-intercept))))
+        (let [x (possibly-infinite (/ (- (s2 :y-intercept) (s1 :y-intercept))
+                                      (- (s1 :slope) (s2 :slope))))]
+          (pt/new-pt x (+ (* (s1 :slope) x) (s1 :y-intercept))))))))
 
 (defn find-bisector
   "Takes the pts defined by sites s1 and s2 and their regions.
@@ -55,14 +65,16 @@
         y-intercept (if (infinite? bisector-slope) nil (- (midpoint :y) (* bisector-slope (midpoint :x))))
         dummy-seg (if (infinite? bisector-slope)
                     (new-seg midpoint (pt/new-pt (midpoint :x)) (inc (midpoint :y)))
-                    (new-seg midpoint (pt/new-pt 0 y-intercept)))
+                    (new-seg midpoint (pt/new-pt (inc (midpoint :x)) (+ (* bisector-slope (inc (midpoint :x))) y-intercept))))
         possible-intersections (->> (concat r1 r2)
                                     (map (fn [x] [(seg-intersection dummy-seg x) x]))
                                     (remove #(nil? (first %)))
                                     (filter #(pt-on-seg? (first %) (second %)))
                                     (map first)
                                     (remove #(= bounding-box-x (% :x)))
-                                    (sort-by :y))]
+                                    (set)
+                                    (sort-by :y >)
+                                    (vec))]
     (assert (= 2 (count possible-intersections)))
     [(apply new-seg (conj possible-intersections s1))
      (apply new-seg (conj (reverse possible-intersections) s2))]))
