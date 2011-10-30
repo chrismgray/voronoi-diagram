@@ -73,8 +73,29 @@
       [x2-site ((second first-segs) :neighbor)])))
 
 (defn next-site [r1 r2 new-pt]
-  (let [new-seg (filter (partial seg/pt-on-seg? new-pt) (concat r1 r2))]
+  (let [new-seg (first (filter (partial seg/pt-on-seg? new-pt) (concat r1 r2)))]
     (new-seg :neighbor)))
+
+(defn next-sites [s1 s2 left-rec right-rec new-pt]
+  (let [next-site (next-site (get-in left-rec [:regions s1])
+                             (get-in right-rec [:regions s2]) new-pt)]
+    (if (nil? (get-in left-rec [:regions next-site]))
+      [s1 next-site]
+      [next-site s2])))
+
+(defn sites-list
+  ([left-rec right-rec]
+     (let [[s1 s2] (first-sites left-rec right-rec)]
+       (sites-list s1 s2 left-rec right-rec)))
+  ([s1 s2 left-rec right-rec]
+     (if (or (nil? s1) (nil? s2))
+       nil
+       (let [r1 (get-in left-rec [:regions s1])
+             r2 (get-in right-rec [:regions s2])
+             bounding-box-x (left-rec :x2)
+             new-pt (get-in (seg/find-bisector s1 s2 r1 r2 bounding-box-x) [0 :e2])
+             [next-s1 next-s2] (next-sites s1 s2 left-rec right-rec new-pt)]
+         (lazy-seq (cons [s1 s2] (sites-list next-s1 next-s2 left-rec right-rec)))))))
 
 (defn merge-rects [left-rec right-rec])
 
