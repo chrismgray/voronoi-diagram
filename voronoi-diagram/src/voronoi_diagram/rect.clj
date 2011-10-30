@@ -97,5 +97,17 @@
              [next-s1 next-s2] (next-sites s1 s2 left-rec right-rec new-pt)]
          (lazy-seq (cons [s1 s2] (sites-list next-s1 next-s2 left-rec right-rec)))))))
 
+(defn insinuate-seg [seg region]
+  (let [e1 (seg :e1)
+        e2 (seg :e2)
+        good-segs (->> (lazy-cat region region)
+                       (drop-while (complement (partial seg/pt-on-seg? e2)))
+                       (take-while (complement (partial seg/pt-on-seg? e1))))
+        e1-seg (first (drop-while (complement (partial seg/pt-on-seg? e1)) region))
+        e2-seg (first good-segs)
+        prev-seg (seg/new-seg (e1-seg :e1) (seg :e1) (e1-seg :neighbor))
+        next-seg (seg/new-seg (seg :e2) (e2-seg :e2) (e2-seg :neighbor))]
+    (concat (rest good-segs) (list prev-seg seg next-seg))))
+
 (defn merge-rects [left-rec right-rec])
 

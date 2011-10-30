@@ -53,3 +53,27 @@
                          :regions {site3 r3})]
     (is (= [[site1 site3] [site2 site3]]
            (vec (rect/sites-list left-rec right-rec))))))
+
+(deftest insinuate-seg
+  (let [region (rect/new-region [1 1] [0 0] [3 0] [4 1])
+        seg (seg/new-seg (pt/new-pt 1 0) (pt/new-pt 2 1))]
+    (is (= (rect/new-region [1 1] [0 0] [1 0] [2 1])
+           (rect/insinuate-seg seg region)))))
+
+(deftest insinuate-seg-2
+  (let [region (rect/new-region [3 0] [4 1] [1 1] [0 0])
+        seg (seg/new-seg (pt/new-pt 1 0) (pt/new-pt 2 1))]
+    (is (= (rect/new-region [1 1] [0 0] [1 0] [2 1])
+           (rect/insinuate-seg seg region)))))
+
+(deftest insinuate-seg-3
+  (let [region (rect/new-region [4 1] [1 1] [0 0] [3 0])
+        seg (seg/new-seg (pt/new-pt 1 0) (pt/new-pt 2 1))]
+    (is (= (rect/new-region [1 1] [0 0] [1 0] [2 1])
+           (rect/insinuate-seg seg region)))))
+
+(deftest insinuate-seg-4
+  (let [region (rect/new-region [0 0] [3 0] [4 1] [1 1])
+        seg (seg/new-seg (pt/new-pt 1 0) (pt/new-pt 2 1))]
+    (is (= (rect/new-region [1 1] [0 0] [1 0] [2 1])
+           (rect/insinuate-seg seg region)))))
