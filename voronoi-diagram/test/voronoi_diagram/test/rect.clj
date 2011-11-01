@@ -51,7 +51,7 @@
                         :regions {site1 r1 site2 r2})
         right-rec (assoc right-rec :x1-site site3 :x2-site site3
                          :regions {site3 r3})]
-    (is (= [[site1 site3] [site2 site3] [site2 nil]]
+    (is (= [[site1 site3] [site2 site3]]
            (vec (rect/sites-list left-rec right-rec))))))
 
 (deftest insinuate-seg
@@ -93,6 +93,16 @@
         left-rec (rect/update-all-corners left-rec s1)
         right-rec (rect/update-all-corners right-rec s2)]
     (is (= 2 (count (rect/first-segs left-rec right-rec))))))
+
+(deftest sites-list-2
+  (let [left-rec (rect/new-rect -12 8 -5 -8)
+        right-rec (rect/new-rect -5 8 0 -8)
+        s1 (pt/new-pt -6 5)
+        s2 (pt/new-pt -4 3)
+        left-rec (rect/update-all-corners left-rec s1)
+        right-rec (rect/update-all-corners right-rec s2)]
+    (is (= (vec (rect/sites-list left-rec right-rec))
+           [[s1 s2] [nil s2]]))))
 
 (deftest merge-rects
   (let [left-rec (rect/new-rect -12 8 -5 -8)
