@@ -105,17 +105,17 @@
       (new-seg :neighbor))))
 
 (defn next-sites [s1 s2 left-rec right-rec new-pt]
-  (let [next-site (next-site (get-in left-rec [:regions s1])
-                             (get-in right-rec [:regions s2]) new-pt)]
+  (let [next-s (next-site (get-in left-rec [:regions s1])
+                          (get-in right-rec [:regions s2]) new-pt)]
     (if (= (new-pt :y) (left-rec :y2))
       [nil nil]
-      (if (nil? next-site)
+      (if (nil? next-s)
         (if (= (new-pt :x) (left-rec :x1))
           [nil s2]
           [s1 nil])
-        (if (nil? (get-in left-rec [:regions next-site]))
-          [s1 next-site]
-          [next-site s2])))))
+        (if (nil? (get-in left-rec [:regions next-s]))
+          [s1 next-s]
+          [next-s s2])))))
 
 (defn sites-list
   ([left-rec right-rec]
