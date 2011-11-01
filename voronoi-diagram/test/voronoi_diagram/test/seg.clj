@@ -16,6 +16,26 @@
 (deftest not-all-different
   (is (false? (all-different? true? [false false false false]))))
 
+(deftest pt-on-line
+  (is (true? (pt-on-line? (pt/new-pt 0 0)
+                         (new-seg (pt/new-pt 1 1)
+                                  (pt/new-pt 2 2))))))
+
+(deftest pt-not-on-line
+  (is (false? (pt-on-line? (pt/new-pt 1 0)
+                          (new-seg (pt/new-pt 1 1)
+                                   (pt/new-pt 2 2))))))
+
+(deftest pt-on-line-inf-slope
+  (is (true? (pt-on-line? (pt/new-pt 0 0)
+                          (new-seg (pt/new-pt 0 1)
+                                   (pt/new-pt 0 2))))))
+
+(deftest pt-not-on-line-inf-slope
+  (is (false? (pt-on-line? (pt/new-pt 1 0)
+                           (new-seg (pt/new-pt 0 1)
+                                    (pt/new-pt 0 2))))))
+
 (deftest pt-within-seg-range
   (is (true? (pt-within-seg-range? (pt/new-pt 0 0)
                                    (new-seg (pt/new-pt -1 -1)
@@ -24,6 +44,22 @@
 (deftest pt-on-seg
   (is (true? (pt-on-seg? (pt/new-pt 0 0)
                          (new-seg (pt/new-pt -1 -1) (pt/new-pt 1 1))))))
+
+(deftest pt-on-end-of-seg
+  (is (true? (pt-on-seg? (pt/new-pt 0 0)
+                         (new-seg (pt/new-pt 0 0) (pt/new-pt 1 1))))))
+
+(deftest pt-on-other-end-of-seg
+  (is (true? (pt-on-seg? (pt/new-pt 1 1)
+                         (new-seg (pt/new-pt 0 0) (pt/new-pt 1 1))))))
+
+(deftest pt-on-end-horiz-seg
+  (is (true? (pt-on-seg? (pt/new-pt 0 0)
+                         (new-seg (pt/new-pt 0 0) (pt/new-pt 1 0))))))
+
+(deftest pt-on-other-end-horiz-seg
+  (is (true? (pt-on-seg? (pt/new-pt 1 0)
+                         (new-seg (pt/new-pt 0 0) (pt/new-pt 1 0))))))
 
 (deftest pt-not-on-seg
   (is (false? (pt-on-seg? (pt/new-pt 0 0.5)

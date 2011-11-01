@@ -14,26 +14,30 @@
 
 (def all-different? (complement all-same?))
 
+(defn pt-on-line? [pt seg]
+  (if (infinite? (seg :slope))
+    (= (pt :x) (get-in seg [:e1 :x]))
+    (= (pt :y) (+ (* (seg :slope) (pt :x)) (seg :y-intercept)))))
+
 (defn pt-within-seg-range? [pt seg]
   (let [pt-x (pt :x)
         pt-y (pt :y)
         x-diffs (map #(- pt-x (get-in seg [% :x])) '(:e1 :e2))
         y-diffs (map #(- pt-y (get-in seg [% :y])) '(:e1 :e2))]
     ((comp not nil?)
-     (or (and
-          (all-different? #(> 0 %) x-diffs)
-          (all-different? #(> 0 %) y-diffs))
-         (and (some #(= 0 %) x-diffs)
-              (all-different? #(> 0 %) y-diffs))
-         (and (some #(= 0 %) y-diffs)
-              (all-different? #(> 0 %) x-diffs))))))
+     (or
+      (= pt (seg :e1))
+      (= pt (seg :e2))
+      (and
+       (all-different? #(> 0 %) x-diffs)
+       (all-different? #(> 0 %) y-diffs))
+      (and (some #(= 0 %) x-diffs)
+           (all-different? #(> 0 %) y-diffs))
+      (and (some #(= 0 %) y-diffs)
+           (all-different? #(> 0 %) x-diffs))))))
 
 (defn pt-on-seg? [pt seg]
-  (if (infinite? (seg :slope))
-    (and (= (pt :x) (get-in seg [:e1 :x]))
-         (pt-within-seg-range? pt seg))
-    (and (= (pt :y) (+ (* (seg :slope) (pt :x)) (seg :y-intercept)))
-         (pt-within-seg-range? pt seg))))
+  (and (pt-on-line? pt seg) (pt-within-seg-range? pt seg)))
 
 (defn seg-intersection [s1 s2]
   (if (= (s1 :slope) (s2 :slope))
