@@ -119,3 +119,29 @@
          (= -8 (merged-rec :y2))
          (= s1 (merged-rec :x1-site))
          (= s2 (merged-rec :x2-site))))))
+
+(defn cyclic-equal? [c1 c2]
+  (let [len (count c1)]
+    (some true? (map #(= c1 (take len (drop (- len %) (cycle c2)))) (range len)))))
+
+(defn rects= [rect1 rect2]
+  (and (every? #(= (rect1 %) (rect2 %)) '(:x1 :x2 :y1 :y2 :x1-site :x2-site))
+       (= (set (keys (rect1 :regions))) (set (keys (rect2 :regions))))
+       (every? #(apply cyclic-equal? %) (map #(list (get-in rect1 [:regions %]) (get-in rect2 [:regions %])) (keys (rect1 :regions))))))
+
+(deftest merge-rects-2
+  (let [left-rec (rect/new-rect -12 8 -5 -8)
+        middle-rec (rect/new-rect -5 8 0 -8)
+        right-rec (rect/new-rect 0 8 12 -8)
+        s1 (pt/new-pt -6 5)
+        s2 (pt/new-pt -4 3)
+        s3 (pt/new-pt 1 5)
+        left-rec (rect/update-all-corners left-rec s1)
+        middle-rec (rect/update-all-corners middle-rec s2)
+        right-rec (rect/update-all-corners right-rec s3)]
+    (is (rects=
+         (rect/merge-rects (rect/merge-rects left-rec middle-rec) right-rec)
+         (rect/merge-rects left-rec (rect/merge-rects middle-rec right-rec))))))
+
+
+
