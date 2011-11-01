@@ -61,6 +61,10 @@
   (is (true? (pt-on-seg? (pt/new-pt 1 0)
                          (new-seg (pt/new-pt 0 0) (pt/new-pt 1 0))))))
 
+(deftest pt-not-on-horiz-seg
+  (is (false? (pt-on-seg? (pt/new-pt 0 0)
+                          (new-seg (pt/new-pt 1 0) (pt/new-pt 2 0))))))
+
 (deftest pt-not-on-seg
   (is (false? (pt-on-seg? (pt/new-pt 0 0.5)
                           (new-seg (pt/new-pt -1 -1) (pt/new-pt 1 1))))))

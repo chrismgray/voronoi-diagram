@@ -24,7 +24,7 @@
         pt-y (pt :y)
         x-diffs (map #(- pt-x (get-in seg [% :x])) '(:e1 :e2))
         y-diffs (map #(- pt-y (get-in seg [% :y])) '(:e1 :e2))]
-    ((comp not nil?)
+    ((comp not not)                   ; force the value into a boolean
      (or
       (= pt (seg :e1))
       (= pt (seg :e2))
