@@ -1,0 +1,12 @@
+#+TITLE: Voronoi Diagram
+
+This is an implementation of the divide-and-conquer algorithm for
+computing the Voronoi Diagram of a given set of points.  The core of
+the algorithm is written in completely functional Clojure.
+
+
+* License
+
+  Copyright (C) 2011 Chris Gray
+
+  Distributed under the [[http://www.gnu.org/licenses/gpl-3.0.txt][GNU General Public License]].
