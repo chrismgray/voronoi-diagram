@@ -1,0 +1,10 @@
+goog.addDependency("../cljs/core.js", ['cljs.core'], ['goog.string', 'goog.string.StringBuffer', 'goog.object', 'goog.array']);
+goog.addDependency("../clojure/browser/event.js", ['clojure.browser.event'], ['cljs.core', 'goog.events', 'goog.events.EventTarget', 'goog.events.EventType']);
+goog.addDependency("../clojure/browser/net.js", ['clojure.browser.net'], ['cljs.core', 'clojure.browser.event', 'goog.net.XhrIo', 'goog.net.EventType', 'goog.net.xpc.CfgFields', 'goog.net.xpc.CrossPageChannel', 'goog.json']);
+goog.addDependency("../clojure/browser/repl.js", ['clojure.browser.repl'], ['cljs.core', 'clojure.browser.net', 'clojure.browser.event']);
+goog.addDependency("../voronoi_diagram/pt.js", ['voronoi_diagram.pt'], ['cljs.core']);
+goog.addDependency("../voronoi_diagram/seg.js", ['voronoi_diagram.seg'], ['cljs.core', 'voronoi_diagram.pt']);
+goog.addDependency("../voronoi_diagram/rect.js", ['voronoi_diagram.rect'], ['cljs.core', 'voronoi_diagram.seg', 'voronoi_diagram.pt']);
+goog.addDependency("../voronoi_diagram/view.js", ['voronoi_diagram.view'], ['cljs.core', 'clojure.browser.event', 'goog.dom', 'goog.graphics', 'voronoi_diagram.rect', 'goog.graphics.CanvasGraphics', 'goog.math.Size', 'goog.graphics.SolidFill', 'clojure.browser.repl', 'goog.dom.ViewportSizeMonitor', 'voronoi_diagram.pt', 'voronoi_diagram.core', 'goog.graphics.Stroke']);
+goog.addDependency("../voronoi_diagram/core.js", ['voronoi_diagram.core'], ['cljs.core', 'voronoi_diagram.rect']);
+goog.addDependency("../voronoi_diagram/infinity.js", ['voronoi_diagram.infinity'], ['cljs.core']);
