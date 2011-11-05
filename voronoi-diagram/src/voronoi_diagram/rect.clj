@@ -158,9 +158,9 @@
         r2 (get-in right-rec [:regions s2])
         bounding-box-x (left-rec :x2)]
     (cond (nil? s1)
-          [(assoc m s2 (conj (get m s2 []) nil)) [left-rec right-rec]]
+          [(assoc m s2 (conj (get m s2 []) nil)) left-rec right-rec]
           (nil? s2)
-          [(assoc m s1 (vec (cons nil (get m s1 [])))) [left-rec right-rec]]
+          [(assoc m s1 (vec (cons nil (get m s1 [])))) left-rec right-rec]
           :else
           (let [[down-bisector up-bisector] (seg/find-bisector s1 s2 r1 r2 bounding-box-x)]
            [(-> m
@@ -212,10 +212,10 @@
         rec (assoc rec :regions (merge (left-rec :regions) (right-rec :regions)))
         rec (reduce region-insinuator rec bisector-path-map)
         first-seg (first (first-segs left-rec right-rec))
-        new-x1-site (if (= (get-in [:e1 :x] first-seg) (left-rec :x1))
+        new-x1-site (if (= (get-in first-seg [:e1 :x]) (left-rec :x1))
                       (right-rec :x1-site)
                       (left-rec :x1-site))
-        new-x2-site (if (= (get-in [:e1 :x] first-seg) (right-rec :x2))
+        new-x2-site (if (= (get-in first-seg [:e1 :x]) (right-rec :x2))
                       (left-rec :x2-site)
                       (right-rec :x2-site))]
     (assoc rec
