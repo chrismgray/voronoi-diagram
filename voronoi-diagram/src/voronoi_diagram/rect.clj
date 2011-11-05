@@ -28,20 +28,19 @@
 
 (defn find-highest-bisector-lower-than [s1 s2 left-rec right-rec prev-pt]
   (let [bounding-box-x (left-rec :x2)
-        possibilities (if (= (prev-pt :x) (left-rec :x1))
-                        (remove nil?
+        possibilities (remove nil?
+                              (if (= (prev-pt :x) (left-rec :x1))
                                 (map #(seg/find-bisector %1 s2 %2 (get-in right-rec [:regions s2]) bounding-box-x)
-                                     (keys (left-rec :regions))
-                                     (vals (left-rec :regions))))
-                        (remove nil?
+                                          (keys (left-rec :regions))
+                                          (vals (left-rec :regions)))
                                 (map #(seg/find-bisector s1 %1 (get-in left-rec [:regions s1]) %2 bounding-box-x)
                                      (keys (right-rec :regions))
                                      (vals (right-rec :regions)))))
-        possibilities-lower-than (filter #(< (get-in % [0 :e1 :y]) (prev-pt :y)) possibilities)]
+        possibilities-lower-than (filter #(<= (get-in % [0 :e1 :y]) (prev-pt :y)) possibilities)]
     (if (empty? possibilities-lower-than)
-      (pt/new-pt (if (= (prev-pt :x) (left-rec :x1)) (left-rec :x1) (right-rec :x2)) (left-rec :y2))
-      (let [highest-seg (apply max-key #(get-in % [0 :e1 :y]) (filter #(< (get-in % [0 :e1 :y]) (prev-pt :y)) possibilities))]
-        (get-in highest-seg [0 :e1])))))
+      [(seg/new-seg (pt/new-pt (if (= (prev-pt :x) (left-rec :x1)) (left-rec :x1) (right-rec :x2)) (left-rec :y2)) (pt/new-pt 0 0))] ; second pt is a dummy
+      (let [highest-seg (apply max-key #(get-in % [0 :e1 :y]) possibilities-lower-than)]
+        highest-seg))))
 
 (defn first-segs [left-rec right-rec]
   (let [x1-site (right-rec :x1-site)
@@ -83,30 +82,36 @@
                 (apply max-key #(get-in % [1 :e2 :y]))))))))
 
 (defn first-sites [left-rec right-rec]
-  (let [x1-site (right-rec :x1-site)
-        x2-site (left-rec :x2-site)
+  (let [s2 (right-rec :x1-site)
+        s1 (left-rec :x2-site)
         split-line-x (right-rec :x1)
         split-line-y (right-rec :y1)
         split-line-pt (pt/new-pt split-line-x split-line-y)
         first-segs (first-segs left-rec right-rec)
         first-pt (get-in first-segs [0 :e1])]
     (if (not= (first-pt :y) (left-rec :y1))
-      (if (< (pt/sq-dist x1-site split-line-pt) (pt/sq-dist x2-site split-line-pt))
-        [nil x1-site (pt/new-pt (left-rec :x1) (left-rec :y1))]
-        [x2-site nil (pt/new-pt (right-rec :x2) (right-rec :y1))])
-      (if (< (pt/sq-dist x1-site split-line-pt) (pt/sq-dist x2-site split-line-pt))
-        [((first first-segs) :neighbor) x1-site]
-        [x2-site ((second first-segs) :neighbor)]))))
+      (if (< (pt/sq-dist s2 split-line-pt) (pt/sq-dist s1 split-line-pt))
+        [nil s2 (pt/new-pt (left-rec :x1) (left-rec :y1))]
+        [s1 nil (pt/new-pt (right-rec :x2) (right-rec :y1))])
+      (if (< (pt/sq-dist s2 split-line-pt) (pt/sq-dist s1 split-line-pt))
+        [((first first-segs) :neighbor) s2 first-pt]
+        [s1 ((second first-segs) :neighbor) first-pt]))))
 
-(defn next-site [r1 r2 new-pt]
-  (let [new-seg (first (filter (partial seg/pt-on-seg? new-pt) (concat r1 r2)))]
-    (if (nil? new-seg)
-      nil
-      (new-seg :neighbor))))
+(defn next-site [s1 s2 left-rec right-rec new-pt]
+  (let [r1 (get-in left-rec [:regions s1])
+        r2 (get-in right-rec [:regions s2])
+        new-seg (first (filter (partial seg/pt-on-seg? new-pt) (lazy-cat r1 r2)))]
+    (if (not (nil? new-seg))
+      (new-seg :neighbor)
+      (let [possible-seg (find-highest-bisector-lower-than s1 s2 left-rec right-rec new-pt)]
+        (if (= new-pt (get-in possible-seg [0 :e1]))
+          (if s1
+            (get-in possible-seg [1 :neighbor])
+            (get-in possible-seg [0 :neighbor]))
+          nil)))))
 
 (defn next-sites [s1 s2 left-rec right-rec new-pt]
-  (let [next-s (next-site (get-in left-rec [:regions s1])
-                          (get-in right-rec [:regions s2]) new-pt)]
+  (let [next-s (next-site s1 s2 left-rec right-rec new-pt)]
     (if (= (new-pt :y) (left-rec :y2))
       [nil nil]
       (if (nil? next-s)
@@ -129,7 +134,7 @@
              bounding-box-x (left-rec :x2)
              new-pt (if (and s1 s2)
                       (get-in (seg/find-bisector s1 s2 r1 r2 bounding-box-x) [0 :e2])
-                      (find-highest-bisector-lower-than s1 s2 left-rec right-rec prev-pt))
+                      (get-in (find-highest-bisector-lower-than s1 s2 left-rec right-rec prev-pt) [0 :e1]))
              [next-s1 next-s2] (next-sites s1 s2 left-rec right-rec new-pt)]
          (lazy-seq (cons [s1 s2] (sites-list next-s1 next-s2 left-rec right-rec new-pt)))))))
 
