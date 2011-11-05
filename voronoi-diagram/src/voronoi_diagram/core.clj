@@ -14,9 +14,9 @@
                            (get-in sites [half-sites :x])) 2)
             left-rect (rect/update-x2 bounding-rect middle-x)
             right-rect (rect/update-x1 bounding-rect middle-x)
-            [left-split-sites right-split-sites] (split-at half-sites sites)]
-        (voronoi-diagram-merge (voronoi-diagram-divide-conquer left-rect (vec left-split-sites))
-                               (voronoi-diagram-divide-conquer right-rect (vec right-split-sites)))))))
+            [left-split-sites right-split-sites] (map vec (split-at half-sites sites))]
+        (voronoi-diagram-merge (voronoi-diagram-divide-conquer left-rect left-split-sites)
+                               (voronoi-diagram-divide-conquer right-rect right-split-sites))))))
 
 (defn voronoi-diagram [bounding-rect & sites]
   (let [sorted-sites (vec (sort-by :x sites))]
