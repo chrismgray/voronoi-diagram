@@ -39,7 +39,7 @@
 (defn pt-on-seg? [pt seg]
   (and (pt-on-line? pt seg) (pt-within-seg-range? pt seg)))
 
-(defn seg-intersection [s1 s2]
+(defn intersection [s1 s2]
   (if (= (s1 :slope) (s2 :slope))
     nil
     (if (infinite? (s1 :slope))
@@ -71,7 +71,7 @@
                     (new-seg midpoint (pt/new-pt (midpoint :x) (inc (midpoint :y))))
                     (new-seg midpoint (pt/new-pt (inc (midpoint :x)) (+ (* bisector-slope (inc (midpoint :x))) y-intercept))))
         possible-intersections (->> (concat r1 r2)
-                                    (map (fn [x] [(seg-intersection dummy-seg x) x]))
+                                    (map (juxt (partial intersection dummy-seg) identity))
                                     (remove #(nil? (first %)))
                                     (filter #(pt-on-seg? (first %) (second %)))
                                     (map first)
