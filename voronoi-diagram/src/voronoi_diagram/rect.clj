@@ -64,7 +64,6 @@
 (defn first-segs [left-rec right-rec]
   (let [x1-site (top-left-site right-rec)
         x2-site (top-right-site left-rec)
-        _ (prn (get-in left-rec [:regions x2-site]))
         split-line-x (left-x right-rec)
         split-line-y (top-y right-rec)
         split-line-pt (pt/new-pt split-line-x split-line-y)]
