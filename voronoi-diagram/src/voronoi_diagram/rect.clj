@@ -49,7 +49,9 @@
                                      (vals (right-rec :regions)))))
         possibilities-lower-than (filter #(<= (get-in % [0 :e1 :y]) (prev-pt :y)) possibilities)]
     (if (empty? possibilities-lower-than)
-      [(seg/new-seg (pt/new-pt (if (= (prev-pt :x) (left-x left-rec)) (left-rec :x1) (right-x right-rec)) (bottom-y left-rec)) (pt/new-pt 0 0))] ; second pt is a dummy
+      [(seg/new-seg (pt/new-pt (if (= (prev-pt :x) (left-x left-rec))
+                                 (left-x left-rec)
+                                 (right-x right-rec)) (bottom-y left-rec)) (pt/new-pt 0 0))] ; second pt is a dummy
       (let [highest-seg (apply max-key #(get-in % [0 :e1 :y]) possibilities-lower-than)]
         highest-seg))))
 
@@ -90,7 +92,7 @@
                 (filter #(= split-line-y (get-in % [1 :e2 :y])))
                 (apply min-key #(get-in % [1 :e2 :x])))
           (->>  possibilities
-                (filter #(= (right-rec :x2) (get-in % [1 :e2 :x])))
+                (filter #(= (right-x right-rec) (get-in % [1 :e2 :x])))
                 (apply max-key #(get-in % [1 :e2 :y]))))))))
 
 (defn first-sites [left-rec right-rec]
