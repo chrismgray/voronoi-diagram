@@ -222,8 +222,83 @@
 (defn region-insinuator [rec [site segs]]
   (assoc-in rec [:regions site] (insinuate-segs segs (get-in rec [:regions site]))))
 
+(defn extend-regions [left-rec right-rec]
+  (let [split-line-x (left-x right-rec)
+        left-bound (seg/new-seg (pt/new-pt (left-x left-rec) (top-y left-rec))
+                                (pt/new-pt (left-x left-rec) (bottom-y left-rec)))
+        top-left-bound (seg/new-seg (pt/new-pt (right-x left-rec) (top-y left-rec))
+                                    (pt/new-pt (left-x left-rec) (top-y left-rec)))
+        bottom-left-bound (seg/new-seg (pt/new-pt (left-x left-rec) (bottom-y left-rec))
+                                    (pt/new-pt (right-x left-rec) (bottom-y left-rec)))
+        right-bound (seg/new-seg (pt/new-pt (right-x right-rec) (top-y right-rec))
+                                 (pt/new-pt (right-x right-rec) (bottom-y right-rec)))
+        top-right-bound (seg/new-seg (pt/new-pt (right-x right-rec) (top-y right-rec))
+                                     (pt/new-pt (left-x right-rec) (top-y right-rec)))
+        bottom-right-bound (seg/new-seg (pt/new-pt (left-x right-rec) (bottom-y right-rec))
+                                        (pt/new-pt (right-x right-rec) (bottom-y right-rec)))
+        helper-fn (fn [top-bound mid-bound bot-bound other-rec region]
+                    (let [on-split-line (->> region
+                                             (filter #(or (= split-line-x (get-in % [:e1 :x]))
+                                                          (= split-line-x (get-in % [:e2 :x]))))
+                                             (remove #(and (= split-line-x (get-in % [:e1 :x]))
+                                                           (= split-line-x (get-in % [:e2 :x])))))
+                          ;; reverse segs if first one is pointing away from the split line
+                          on-split-line (if (= (get-in on-split-line [0 :e1 :x]) split-line-x) (reverse on-split-line) on-split-line)
+                          possible-intersection (if (empty? on-split-line) nil (apply seg/intersection on-split-line))]
+                      (cond
+                       (nil? possible-intersection)
+                       region
+                       (inside? possible-intersection other-rec)
+                       (insinuate-segs [(seg/new-seg (get-in on-split-line [0 :e2]) possible-intersection (get-in on-split-line [0 :neighbor]))
+                                        (seg/new-seg possible-intersection (get-in on-split-line [1 :e1]) (get-in on-split-line [1 :neighbor]))]
+                                       region)
+                       (and (seg/intersection-on-seg? (first on-split-line) bot-bound)
+                            (seg/intersection-on-seg? (second on-split-line) bot-bound))
+                       (insinuate-seg (seg/new-seg (seg/intersection (first on-split-line) bot-bound)
+                                                   (seg/intersection (second on-split-line) bot-bound)) region)
+                       (seg/intersection-on-seg? (first on-split-line) mid-bound)
+                       (cond
+                        (seg/intersection-on-seg? (second on-split-line) mid-bound)
+                        (insinuate-seg (seg/new-seg (seg/seg-intersection (first on-split-line) mid-bound)
+                                                    (seg/seg-intersection (second on-split-line) mid-bound)) region)
+                        (seg/intersection-on-seg? (second on-split-line) bot-bound)
+                        (insinuate-segs [(seg/new-seg (seg/intersection (first on-split-line) mid-bound)
+                                                      (mid-bound :e2))
+                                         (seg/new-seg (mid-bound :e2)
+                                                      (seg/intersection (second on-split-line) bot-bound))] region)
+                        :else
+                        (assert false))
+                       (seg/intersection-on-seg? (first on-split-line) top-bound)
+                       (cond
+                        (seg/intersection-on-seg? (second on-split-line) top-bound)
+                        (insinuate-seg (seg/new-seg (seg/intersection (first on-split-line) top-bound)
+                                                    (seg/intersection (second on-split-line) top-bound)) region)
+                        (seg/intersection-on-seg? (second on-split-line) mid-bound)
+                        (insinuate-segs [(seg/new-seg (seg/intersection (first on-split-line) top-bound)
+                                                      (top-bound :e2))
+                                         (seg/new-seg (top-bound :e2)
+                                                      (seg/intersection (second on-split-line) mid-bound))] region)
+                        (seg/intersection-on-seg? (second on-split-line) bot-bound)
+                        (insinuate-segs [(seg/new-seg (seg/intersection (first on-split-line) top-bound)
+                                                      (top-bound :e2))
+                                         mid-bound
+                                         (seg/new-seg (bot-bound :e1)
+                                                      (seg/intersection (second on-split-line) bot-bound))])
+                        :else
+                        (assert false)))))
+        new-left-rec (reduce (fn [m k]
+                               (update-in m [:regions k]
+                                          (partial helper-fn top-right-bound right-bound bottom-right-bound right-rec)))
+                             left-rec (keys (left-rec :regions)))
+        new-right-rec (reduce (fn [m k]
+                                (update-in m [:regions k]
+                                           (partial helper-fn top-left-bound left-bound bottom-left-bound left-rec)))
+                             right-rec (keys (right-rec :regions)))]
+    [new-left-rec new-right-rec]))
+
 (defn merge-rects [left-rec right-rec]
-  (let [sites-to-consider (sites-list left-rec right-rec)
+  (let [[left-rec right-rec] (extend-regions left-rec right-rec)
+        sites-to-consider (sites-list left-rec right-rec)
         rec (new-rect (left-rec :top-left) (right-rec :bottom-right))
         [bisector-path-map _ _] (reduce merge-helper [{} left-rec right-rec] sites-to-consider)
         [bisector-path-map _ _] (reduce bisector-path-map-fix [bisector-path-map left-rec right-rec] (keys bisector-path-map))
