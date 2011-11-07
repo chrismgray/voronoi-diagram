@@ -164,5 +164,12 @@
          (rect/merge-rects (rect/merge-rects left-rec middle-rec) right-rec)
          (rect/merge-rects left-rec (rect/merge-rects middle-rec right-rec))))))
 
+(deftest inside
+  (is (true? (rect/inside? (pt/new-pt 0 0)
+                           (rect/new-rect (pt/new-pt -1 1)
+                                          (pt/new-pt 1 -1))))))
 
-
+(deftest outside
+  (is (false? (rect/inside? (pt/new-pt 0 100)
+                            (rect/new-rect (pt/new-pt -1 1)
+                                           (pt/new-pt 1 -1))))))

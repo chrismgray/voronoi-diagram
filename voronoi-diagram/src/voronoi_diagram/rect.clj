@@ -37,6 +37,12 @@
 (defn new-rect [top-left bottom-right]
   {:top-left top-left :bottom-right bottom-right})
 
+(defn inside? [pt rec]
+  (and (<= (pt :x) (right-x rec))
+       (>= (pt :x) (left-x rec))
+       (<= (pt :y) (top-y rec))
+       (>= (pt :y) (bottom-y rec))))
+
 (defn find-highest-bisector-lower-than [s1 s2 left-rec right-rec prev-pt]
   (let [bounding-box-x (right-x left-rec)
         possibilities (remove nil?
