@@ -103,3 +103,13 @@
         r2 (vec (map #(new-seg %1 %2) (map pt/new-pt [3 0 0 3] [2 2 -2 -2]) (map pt/new-pt [0 0 3 3] [2 -2 -2 2])))]
     (is (= (new-seg (pt/new-pt -2 2) (pt/new-pt 2 -2) s1)
            (first (find-bisector s1 s2 r1 r2 0))))))
+
+(deftest intersection-on-seg
+  (let [s1 (new-seg (pt/new-pt -1 0) (pt/new-pt 1 0))
+        s2 (new-seg (pt/new-pt 0 -1) (pt/new-pt 0 -2))]
+    (is (true? (intersection-on-seg? s1 s2)))))
+
+(deftest intersection-not-on-seg
+  (let [s1 (new-seg (pt/new-pt -1 0) (pt/new-pt 1 0))
+        s2 (new-seg (pt/new-pt 2 -1) (pt/new-pt 2 -2))]
+    (is (false? (intersection-on-seg? s1 s2)))))

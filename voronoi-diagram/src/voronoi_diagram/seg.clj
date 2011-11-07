@@ -52,6 +52,11 @@
                                       (- (s1 :slope) (s2 :slope))))]
           (pt/new-pt x (+ (* (s1 :slope) x) (s1 :y-intercept))))))))
 
+(defn intersection-on-seg? [s1 s2]
+  (let [i (intersection s1 s2)]
+    (or (pt-on-seg? i s1)
+        (pt-on-seg? i s2))))
+
 (defn find-bisector
   "Takes the pts defined by sites s1 and s2 and their regions.
    Returns the bisector of s1 and s2 inside the intersection of their
