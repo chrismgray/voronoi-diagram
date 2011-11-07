@@ -84,6 +84,8 @@
                                     (set)
                                     (sort-by :y >)
                                     (vec))]
+    (when (not (empty? possible-intersections))
+      (assert (= (count possible-intersections) 2) (str "possible intersections: " possible-intersections "\n" s1 " " s2 "\n" (vec r1) "\n" (vec r2) "\n" dummy-seg)))
     (if (empty? possible-intersections)
       nil
       [(new-seg (first possible-intersections) (second possible-intersections) s1)
