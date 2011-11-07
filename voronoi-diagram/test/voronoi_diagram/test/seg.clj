@@ -113,3 +113,13 @@
   (let [s1 (new-seg (pt/new-pt -1 0) (pt/new-pt 1 0))
         s2 (new-seg (pt/new-pt 2 -1) (pt/new-pt 2 -2))]
     (is (false? (intersection-on-seg? s1 s2)))))
+
+(deftest degenerate-intersection-on-seg-1
+  (let [s1 (new-seg (pt/new-pt 0 0) (pt/new-pt 1 0))
+        s2 (new-seg (pt/new-pt 1 0) (pt/new-pt 1 -1))]
+    (is (true? (intersection-on-seg? s1 s2)))))
+
+(deftest degenerate-intersection-on-seg-2
+  (let [s1 (new-seg (pt/new-pt 0 0) (pt/new-pt 1 0))
+        s2 (new-seg (pt/new-pt 1 0) (pt/new-pt 2 0))]
+    (is (false? (intersection-on-seg? s1 s2)))))
