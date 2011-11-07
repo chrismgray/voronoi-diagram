@@ -54,8 +54,10 @@
 
 (defn intersection-on-seg? [s1 s2]
   (let [i (intersection s1 s2)]
-    (or (pt-on-seg? i s1)
-        (pt-on-seg? i s2))))
+    (if (nil? i)
+      false
+      (or (pt-on-seg? i s1)
+          (pt-on-seg? i s2)))))
 
 (defn find-bisector
   "Takes the pts defined by sites s1 and s2 and their regions.
