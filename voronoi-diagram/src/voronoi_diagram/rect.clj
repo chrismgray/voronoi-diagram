@@ -242,7 +242,8 @@
                                              (filter #(or (= split-line-x (get-in % [:e1 :x]))
                                                           (= split-line-x (get-in % [:e2 :x]))))
                                              (remove #(and (= split-line-x (get-in % [:e1 :x]))
-                                                           (= split-line-x (get-in % [:e2 :x])))))
+                                                           (= split-line-x (get-in % [:e2 :x]))))
+                                             (vec))
                           ;; reverse segs if first one is pointing away from the split line
                           on-split-line (if (= (get-in on-split-line [0 :e1 :x]) split-line-x) (reverse on-split-line) on-split-line)
                           possible-intersection (if (empty? on-split-line) nil (apply seg/intersection on-split-line))]
@@ -260,8 +261,8 @@
                        (seg/intersection-on-seg? (first on-split-line) mid-bound)
                        (cond
                         (seg/intersection-on-seg? (second on-split-line) mid-bound)
-                        (insinuate-seg (seg/new-seg (seg/seg-intersection (first on-split-line) mid-bound)
-                                                    (seg/seg-intersection (second on-split-line) mid-bound)) region)
+                        (insinuate-seg (seg/new-seg (seg/intersection (first on-split-line) mid-bound)
+                                                    (seg/intersection (second on-split-line) mid-bound)) region)
                         (seg/intersection-on-seg? (second on-split-line) bot-bound)
                         (insinuate-segs [(seg/new-seg (seg/intersection (first on-split-line) mid-bound)
                                                       (mid-bound :e2))

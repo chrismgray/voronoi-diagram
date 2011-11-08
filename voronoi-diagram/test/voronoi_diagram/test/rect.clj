@@ -173,3 +173,89 @@
   (is (false? (rect/inside? (pt/new-pt 0 100)
                             (rect/new-rect (pt/new-pt -1 1)
                                            (pt/new-pt 1 -1))))))
+
+(deftest extend-regions
+  (let [s1 (pt/new-pt 2 2)
+        s2 (pt/new-pt 30 80)
+        s3 (pt/new-pt 50 40)
+        r1 (rect/new-rect (pt/new-pt 0 100) (pt/new-pt 16 0))
+        r2 (rect/new-rect (pt/new-pt 16 100) (pt/new-pt 40 0))
+        r3 (rect/new-rect (pt/new-pt 40 100) (pt/new-pt 100 0))
+        [r1 r2 r3] (vec (map rect/update-all-corners [r1 r2 r3] [s1 s2 s3]))
+        merged-r2-r3 (rect/merge-rects r2 r3)
+        _ (pprint (second (rect/extend-regions r1 merged-r2-r3)))
+        proper-rects [{:regions
+                       {{:x 2, :y 2}
+                        (list {:e1 {:x 0, :y 100},
+                               :e2 {:x 0, :y 0},
+                               :neighbor nil,
+                               :slope :infinity,
+                               :y-intercept 100}
+                              {:e1 {:x 0, :y 0},
+                               :e2 {:x 16, :y 0},
+                               :neighbor nil,
+                               :slope 0,
+                               :y-intercept 0}
+                              {:e1 {:x 16, :y 0},
+                               :e2 {:x 16, :y 100},
+                               :neighbor nil,
+                               :slope :infinity,
+                               :y-intercept :infinity}
+                              {:e1 {:x 16, :y 100},
+                               :e2 {:x 0, :y 100},
+                               :neighbor nil,
+                               :slope 0,
+                               :y-intercept 100})},
+                       :top-right-site {:x 2, :y 2},
+                       :top-left-site {:x 2, :y 2},
+                       :top-left {:x 0, :y 100},
+                       :bottom-right {:x 16, :y 0}}
+                      {:top-right-site {:x 30, :y 80},
+                       :top-left-site {:x 30, :y 80},
+                       :regions
+                       {{:x 50, :y 40}
+                        (list {:e1 {:x 100, :y 0},
+                               :e2 {:x 100, :y 90N},
+                               :neighbor nil,
+                               :slope :infinity,
+                               :y-intercept :infinity}
+                              {:e1 {:x 100, :y 90N},
+                               :e2 {:x 0, :y 40N},
+                               :neighbor {:x 30, :y 80},
+                               :slope 1/2,
+                               :y-intercept 40N}
+                              {:e1 {:x 0, :y 40N},
+                               :e2 {:x 0, :y 0},
+                               :neighbor nil,
+                               :slope :infinity,
+                               :y-intercept 40N}
+                              {:e1 {:x 0, :y 0},
+                               :e2 {:x 100, :y 0},
+                               :neighbor nil,
+                               :slope 0,
+                               :y-intercept 0}),
+                        {:x 30, :y 80}
+                        (list {:e1 {:x 100, :y 90},
+                               :e2 {:x 100, :y 100},
+                               :neighbor nil,
+                               :slope :infinity,
+                               :y-intercept :infinity}
+                              {:e1 {:x 100, :y 100},
+                               :e2 {:x 0, :y 100},
+                               :neighbor nil,
+                               :slope 0,
+                               :y-intercept 100}
+                              {:e1 {:x 0, :y 100},
+                               :e2 {:x 0, :y 40},
+                               :neighbor nil,
+                               :slope :infinity,
+                               :y-intercept 100}
+                              {:e1 {:x 0, :y 40},
+                               :e2 {:x 100, :y 90},
+                               :neighbor {:x 50 :y 40},
+                               :slope 1/2,
+                               :y-intercept 40})},
+                       :top-left {:x 16, :y 100},
+                       :bottom-right {:x 100, :y 0}}]]
+    (is (rects= (second proper-rects) (second (rect/extend-regions r1 merged-r2-r3))))))
+
