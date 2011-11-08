@@ -39,6 +39,13 @@
 (defn pt-on-seg? [pt seg]
   (and (pt-on-line? pt seg) (pt-within-seg-range? pt seg)))
 
+(defn pt-inside-region?
+  "Tests whether or not the given point is inside the counterclockwise-oriented
+   polygon defined by region."
+  [pt region]
+  (every? #(or (pt/left-turn? (% :e1) (% :e2) pt)
+               (pt-on-seg? pt %)) region))
+
 (defn intersection [s1 s2]
   (if (= (s1 :slope) (s2 :slope))
     nil
@@ -82,7 +89,8 @@
                                     (remove #(nil? (first %)))
                                     (filter #(pt-on-seg? (first %) (second %)))
                                     (map first)
-                                    (remove #(= bounding-box-x (% :x)))
+                                    (filter #(and (pt-inside-region? % r1)
+                                                  (pt-inside-region? % r2)))
                                     (set)
                                     (sort-by :y >)
                                     (vec))]

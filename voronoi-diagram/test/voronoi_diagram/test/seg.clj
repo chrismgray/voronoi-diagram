@@ -1,7 +1,8 @@
 (ns voronoi-diagram.test.seg
   (:use [voronoi-diagram.seg]
         [voronoi-diagram.infinity])
-  (:require [voronoi-diagram.pt :as pt])
+  (:require [voronoi-diagram.pt :as pt]
+            [voronoi-diagram.rect :as rect])
   (:use [clojure.test]))
 
 (deftest infinite-slope
@@ -99,8 +100,8 @@
 (deftest bisector
   (let [s1 (pt/new-pt -1 -1)
         s2 (pt/new-pt 1 1)
-        r1 (vec (map #(new-seg %1 %2) (map pt/new-pt [0 -3 -3 0] [2 2 -2 -2]) (map pt/new-pt [-3 -3 0 0] [2 -2 -2 2])))
-        r2 (vec (map #(new-seg %1 %2) (map pt/new-pt [3 0 0 3] [2 2 -2 -2]) (map pt/new-pt [0 0 3 3] [2 -2 -2 2])))]
+        r1 (rect/new-region [-3 -2] [2 -2] [2 2] [-3 2])
+        r2 (rect/new-region [-3 -3] [3 -3] [3 3] [-3 3])]
     (is (= (new-seg (pt/new-pt -2 2) (pt/new-pt 2 -2) s1)
            (first (find-bisector s1 s2 r1 r2 0))))))
 
@@ -123,3 +124,113 @@
   (let [s1 (new-seg (pt/new-pt 0 0) (pt/new-pt 1 0))
         s2 (new-seg (pt/new-pt 1 0) (pt/new-pt 2 0))]
     (is (false? (intersection-on-seg? s1 s2)))))
+
+(deftest is-inside-region
+  (let [region (rect/new-region [0 0]
+                                [1 0]
+                                [1 1]
+                                [0 1])
+        pt (pt/new-pt 0.5 0.5)]
+    (is (true? (pt-inside-region? pt region)))))
+
+(deftest is-outside-region
+  (let [region (rect/new-region [0 0]
+                                [1 0]
+                                [1 1]
+                                [0 1])
+        pt (pt/new-pt 2 0)]
+    (is (false? (pt-inside-region? pt region)))))
+
+(deftest pt-on-region
+  (let [region (rect/new-region [0 0]
+                                [1 0]
+                                [1 1]
+                                [0 1])
+        pt (pt/new-pt (/ 1 2) 0)]
+    (is (true? (pt-inside-region? pt region)))))
+
+(deftest good-bisector
+  (let [r1   (list
+              {:e1 {:x -1, :y 8},
+               :e2 {:x -12, :y -3},
+               :neighbor {:x -6, :y 5},
+               :slope 1,
+               :y-intercept 9}
+              {:e1 {:x -12, :y -3},
+               :e2 {:x -12, :y -8},
+               :neighbor nil,
+               :slope :infinity,
+               :y-intercept :infinity}
+              {:e1 {:x -12, :y -8},
+               :e2 {:x 12, :y -8},
+               :neighbor nil,
+               :slope 0,
+               :y-intercept -8}
+              {:e1 {:x 12, :y -8},
+               :e2 {:x 12, :y 8},
+               :neighbor nil,
+               :slope :infinity,
+               :y-intercept :infinity}
+              {:e1 {:x 12, :y 8},
+               :e2 {:x -1, :y 8},
+               :neighbor nil,
+               :slope 0,
+               :y-intercept 8})
+        r2 (list
+            {:e1 {:x 12, :y -8},
+             :e2 {:x 12, :y 8},
+             :neighbor nil,
+             :slope :infinity,
+             :y-intercept :infinity}
+            {:e1 {:x 12, :y 8},
+             :e2 {:x -12, :y 8},
+             :neighbor nil,
+             :slope 0,
+             :y-intercept 8}
+            {:e1 {:x -12, :y 8},
+             :e2 {:x -12, :y -8},
+             :neighbor nil,
+             :slope :infinity,
+             :y-intercept :infinity}
+            {:e1 {:x -12, :y -8},
+             :e2 {:x 12, :y -8},
+             :neighbor nil,
+             :slope 0,
+             :y-intercept -8})
+        s1 {:x -4, :y 3}
+        s2 {:x 1, :y 5}]
+    (is (not (nil? (find-bisector s1 s2 r1 r2 0))))))
+
+(deftest new-inside-test
+  (let [r1 (list
+              {:e1 {:x -1, :y 8},
+               :e2 {:x -12, :y -3},
+               :neighbor {:x -6, :y 5},
+               :slope 1,
+               :y-intercept 9}
+              {:e1 {:x -12, :y -3},
+               :e2 {:x -12, :y -8},
+               :neighbor nil,
+               :slope :infinity,
+               :y-intercept :infinity}
+              {:e1 {:x -12, :y -8},
+               :e2 {:x 12, :y -8},
+               :neighbor nil,
+               :slope 0,
+               :y-intercept -8}
+              {:e1 {:x 12, :y -8},
+               :e2 {:x 12, :y 8},
+               :neighbor nil,
+               :slope :infinity,
+               :y-intercept :infinity}
+              {:e1 {:x 12, :y 8},
+               :e2 {:x -1, :y 8},
+               :neighbor nil,
+               :slope 0,
+               :y-intercept 8})
+        s1 {:x -4, :y 3}
+        s2 {:x 1, :y 5}
+        pts (list {:x -5/2, :y 13/2} {:x 33/10, :y -8N} {:x -31/10, :y 8N} {:x 33/10, :y -8N})]
+    (is (= [true true false true]
+           (vec (map #(pt-inside-region? % r1) pts))))))
+
