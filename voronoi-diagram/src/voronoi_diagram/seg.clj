@@ -24,7 +24,7 @@
         pt-y (pt :y)
         x-diffs (map #(- pt-x (get-in seg [% :x])) '(:e1 :e2))
         y-diffs (map #(- pt-y (get-in seg [% :y])) '(:e1 :e2))]
-    ((comp not not)                   ; force the value into a boolean
+    (boolean
      (or
       (= pt (seg :e1))
       (= pt (seg :e2))
@@ -39,7 +39,7 @@
 (defn pt-on-seg? [pt seg]
   (and (pt-on-line? pt seg) (pt-within-seg-range? pt seg)))
 
-(defn seg-intersection [s1 s2]
+(defn intersection [s1 s2]
   (if (= (s1 :slope) (s2 :slope))
     nil
     (if (infinite? (s1 :slope))
@@ -51,6 +51,13 @@
         (let [x (possibly-infinite (/ (- (s2 :y-intercept) (s1 :y-intercept))
                                       (- (s1 :slope) (s2 :slope))))]
           (pt/new-pt x (+ (* (s1 :slope) x) (s1 :y-intercept))))))))
+
+(defn intersection-on-seg? [s1 s2]
+  (let [i (intersection s1 s2)]
+    (if (nil? i)
+      false
+      (or (pt-on-seg? i s1)
+          (pt-on-seg? i s2)))))
 
 (defn find-bisector
   "Takes the pts defined by sites s1 and s2 and their regions.
@@ -71,7 +78,7 @@
                     (new-seg midpoint (pt/new-pt (midpoint :x) (inc (midpoint :y))))
                     (new-seg midpoint (pt/new-pt (inc (midpoint :x)) (+ (* bisector-slope (inc (midpoint :x))) y-intercept))))
         possible-intersections (->> (concat r1 r2)
-                                    (map (fn [x] [(seg-intersection dummy-seg x) x]))
+                                    (map (juxt (partial intersection dummy-seg) identity))
                                     (remove #(nil? (first %)))
                                     (filter #(pt-on-seg? (first %) (second %)))
                                     (map first)
@@ -79,6 +86,8 @@
                                     (set)
                                     (sort-by :y >)
                                     (vec))]
+    (when (not (empty? possible-intersections))
+      (assert (= (count possible-intersections) 2) (str "possible intersections: " possible-intersections "\n" s1 " " s2 "\n" (vec r1) "\n" (vec r2) "\n" dummy-seg)))
     (if (empty? possible-intersections)
       nil
       [(new-seg (first possible-intersections) (second possible-intersections) s1)
