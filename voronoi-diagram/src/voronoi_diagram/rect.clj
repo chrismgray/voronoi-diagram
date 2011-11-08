@@ -120,7 +120,7 @@
   (let [r1 (get-in left-rec [:regions s1])
         r2 (get-in right-rec [:regions s2])
         new-seg (first (filter (partial seg/pt-on-seg? new-pt) (lazy-cat r1 r2)))]
-    (if (not (nil? new-seg))
+    (if (and (not (nil? s1)) (not (nil? s2)))
       (new-seg :neighbor)
       (let [possible-seg (find-highest-bisector-lower-than s1 s2 left-rec right-rec new-pt)]
         (if (= new-pt (get-in possible-seg [0 :e1]))
@@ -167,7 +167,7 @@
         e2-seg (first good-segs)
         prev-seg (seg/new-seg (e1-seg :e1) ((first segs) :e1) (e1-seg :neighbor))
         next-seg (seg/new-seg ((last segs) :e2) (e2-seg :e2) (e2-seg :neighbor))]
-    (concat (rest good-segs) (list prev-seg) segs (list next-seg))))
+    (remove #(= (% :e1) (% :e2)) (concat (rest good-segs) (list prev-seg) segs (list next-seg)))))
 
 (defn insinuate-seg [seg region]
   (insinuate-segs (list seg) region))
@@ -214,11 +214,13 @@
                                                         (top-y left-rec)
                                                         (bottom-y left-rec))))
                              :else
-                             (assert false)))
-                     (cons nil %)       ; segs with nil in front
-                     %                  ; segs
-                     (conj % nil)       ; segs with nil in back
-                     ))) left-rec right-rec))
+                             (assert (not (every? nil? [curr prev next-seg])) (str %))))
+                     ;; segs with nil in front; not hitting end is okay
+                     (cons nil %)
+                     ;; segs with nils in front and back
+                     %
+                     ;; segs with nils in back
+                     (conj (vec (rest %)) nil)))) left-rec right-rec))
 
 (defn region-insinuator [rec [site segs]]
   (assoc-in rec [:regions site] (insinuate-segs segs (get-in rec [:regions site]))))
@@ -248,9 +250,9 @@
                           on-split-line (if (= (get-in on-split-line [0 :e1 :x]) split-line-x) (reverse on-split-line) on-split-line)
                           possible-intersection (if (empty? on-split-line) nil (apply seg/intersection on-split-line))]
                       (cond
-                       (nil? possible-intersection)
+                       (empty? on-split-line)
                        region
-                       (inside? possible-intersection other-rec)
+                       (and possible-intersection (inside? possible-intersection other-rec))
                        (insinuate-segs [(seg/new-seg (get-in on-split-line [0 :e2]) possible-intersection (get-in on-split-line [0 :neighbor]))
                                         (seg/new-seg possible-intersection (get-in on-split-line [1 :e1]) (get-in on-split-line [1 :neighbor]))]
                                        region)
