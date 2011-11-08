@@ -16,7 +16,8 @@
         left-rec (assoc left-rec :top-left-site site1 :top-right-site site2
                         :regions {site1 r1 site2 r2})
         right-rec (assoc right-rec :top-left-site site3 :top-right-site site3
-                         :regions {site3 r3})]
+                         :regions {site3 r3})
+        [left-rec right-rec] (rect/extend-regions left-rec right-rec)]
     (is (= 2 (count
               (rect/first-segs left-rec right-rec))))))
 
@@ -33,6 +34,7 @@
                         :regions {site1 r1 site2 r2})
         right-rec (assoc right-rec :top-left-site site3 :top-right-site site3
                          :regions {site3 r3})
+        [left-rec right-rec] (rect/extend-regions left-rec right-rec)
         [first-site second-site _] (rect/first-sites left-rec right-rec)]
     (is (= [site1 site3]
            [first-site second-site]))))
@@ -51,7 +53,8 @@
         left-rec (assoc left-rec :top-left-site site1 :top-right-site site2
                         :regions {site1 r1 site2 r2})
         right-rec (assoc right-rec :top-left-site site3 :top-right-site site3
-                         :regions {site3 r3})]
+                         :regions {site3 r3})
+        [left-rec right-rec] (rect/extend-regions left-rec right-rec)]
     (is (= [[site1 site3] [site2 site3]]
            (vec (rect/sites-list left-rec right-rec))))))
 
@@ -61,7 +64,8 @@
         s1 (pt/new-pt 30 80)
         s2 (pt/new-pt 50 40)
         left-rec (rect/update-all-corners left-rec s1)
-        right-rec (rect/update-all-corners right-rec s2)]
+        right-rec (rect/update-all-corners right-rec s2)
+        [left-rec right-rec] (rect/extend-regions left-rec right-rec)]
     (is (= [[s1 nil] [s1 s2] [nil s2]]
            (vec (rect/sites-list left-rec right-rec))))))
 
@@ -112,7 +116,8 @@
         s1 (pt/new-pt -6 5)
         s2 (pt/new-pt -4 3)
         left-rec (rect/update-all-corners left-rec s1)
-        right-rec (rect/update-all-corners right-rec s2)]
+        right-rec (rect/update-all-corners right-rec s2)
+        [left-rec right-rec] (rect/extend-regions left-rec right-rec)]
     (is (= 2 (count (rect/first-segs left-rec right-rec))))))
 
 (deftest sites-list-2
@@ -121,7 +126,8 @@
         s1 (pt/new-pt -6 5)
         s2 (pt/new-pt -4 3)
         left-rec (rect/update-all-corners left-rec s1)
-        right-rec (rect/update-all-corners right-rec s2)]
+        right-rec (rect/update-all-corners right-rec s2)
+        [left-rec right-rec] (rect/extend-regions left-rec right-rec)]
     (is (= (vec (rect/sites-list left-rec right-rec))
            [[s1 s2] [nil s2]]))))
 
@@ -183,7 +189,6 @@
         r3 (rect/new-rect (pt/new-pt 40 100) (pt/new-pt 100 0))
         [r1 r2 r3] (vec (map rect/update-all-corners [r1 r2 r3] [s1 s2 s3]))
         merged-r2-r3 (rect/merge-rects r2 r3)
-        _ (pprint (second (rect/extend-regions r1 merged-r2-r3)))
         proper-rects [{:regions
                        {{:x 2, :y 2}
                         (list {:e1 {:x 0, :y 100},
