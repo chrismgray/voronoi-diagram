@@ -1,5 +1,5 @@
 (ns voronoi-diagram.core
-  (require [voronoi-diagram.rect :as rect]
+  (:require [voronoi-diagram.rect :as rect]
            [voronoi-diagram.pt :as pt]))
 
 (defn voronoi-diagram-merge [left-rec right-rec]
