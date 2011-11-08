@@ -83,17 +83,17 @@
 
 (deftest seg-int
   (is (= (pt/new-pt 0 0)
-         (seg-intersection (new-seg (pt/new-pt -1 -1) (pt/new-pt 1 1))
+         (intersection (new-seg (pt/new-pt -1 -1) (pt/new-pt 1 1))
                            (new-seg (pt/new-pt -1 1) (pt/new-pt 1 -1))))))
 
 (deftest seg-int-inf-slope
   (is (= (pt/new-pt 0 0)
-         (seg-intersection (new-seg (pt/new-pt 0 -1) (pt/new-pt 0 1))
+         (intersection (new-seg (pt/new-pt 0 -1) (pt/new-pt 0 1))
                            (new-seg (pt/new-pt 1 0) (pt/new-pt -1 0))))))
 
 (deftest seg-int-inf-slope-2
   (is (= (pt/new-pt 0 0)
-         (seg-intersection (new-seg (pt/new-pt 1 0) (pt/new-pt -1 0))
+         (intersection (new-seg (pt/new-pt 1 0) (pt/new-pt -1 0))
                            (new-seg (pt/new-pt 0 -1) (pt/new-pt 0 1))))))
 
 (deftest bisector
