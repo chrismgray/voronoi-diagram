@@ -42,8 +42,9 @@
 
 (defn do-voronoi [e]
   (.log js/console "do voronoi")
+  (.log js/console @pts)
   (let [[width height] (size-vec (get-size))
-        voronoi-rect (apply core/diagram (rect/new-rect 0 0 width height) @pts)]
+        voronoi-rect (apply core/diagram (rect/new-rect (pt/new-pt 0 height) (pt/new-pt width 0)) @pts)]
     (doseq [region (voronoi-rect :regions)]
       (draw-region region))))
 

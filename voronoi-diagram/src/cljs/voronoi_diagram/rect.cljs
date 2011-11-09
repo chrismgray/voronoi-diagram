@@ -119,7 +119,7 @@
 (defn next-site [s1 s2 left-rec right-rec new-pt]
   (let [r1 (get-in left-rec [:regions s1])
         r2 (get-in right-rec [:regions s2])
-        new-seg (first (filter (partial seg/pt-on-seg? new-pt) (lazy-cat r1 r2)))]
+        new-seg (first (filter (partial seg/pt-on-seg? new-pt) (concat r1 r2)))]
     (if (and (not (nil? s1)) (not (nil? s2)))
       (new-seg :neighbor)
       (let [possible-seg (find-highest-bisector-lower-than s1 s2 left-rec right-rec new-pt)]
@@ -160,7 +160,7 @@
 (defn insinuate-segs [segs region]
   (let [e1 ((first segs) :e1)
         e2 ((last segs) :e2)
-        good-segs (->> (lazy-cat region region)
+        good-segs (->> (concat region region)
                        (drop-while (complement (partial seg/pt-on-line? e2)))
                        (take-while (complement (partial seg/pt-on-line? e1))))
         e1-seg (first (drop-while (complement (partial seg/pt-on-line? e1)) region))
