@@ -4,3 +4,4 @@
 /voronoi-diagram/src/voronoi_diagram/voronoi.tex
 /voronoi-diagram/.lein-failures
 /voronoi-diagram/.repl/*
+/voronoi-diagram/src/view.js
