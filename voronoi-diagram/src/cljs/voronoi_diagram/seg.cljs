@@ -1,5 +1,6 @@
 (ns voronoi-diagram.seg
   (:require [voronoi-diagram.pt :as pt])
+  (:use [voronoi-diagram.rationals :only [/ + * - < > <= >= =]])
   (:use-macros [voronoi-diagram.infinity :only [possibly-infinite]]))
 
 (defn infinite? [x]
