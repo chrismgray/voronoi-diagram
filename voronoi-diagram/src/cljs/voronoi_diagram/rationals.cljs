@@ -1,5 +1,5 @@
 (ns voronoi-diagram.rationals
-  (:require [clojure.core :as core]))
+  (:require [cljs.core :as core]))
 
 ;; TODO: use deftype
 (defn- new-rational [num denom]
@@ -10,7 +10,7 @@
 
 (defn- to-float [r]
   (if (rational? r)
-    (clojure.core// (r :num) (r :denom))
+    (core// (r :num) (r :denom))
     r))
 
 (defn- int->rational [i]
@@ -67,7 +67,7 @@
 (defmethod / :float [& x]
   (->> x
        (map to-float)
-       (apply clojure.core//)))
+       (apply core//)))
 
 (defmulti * should-be-rational?)
 
@@ -81,8 +81,8 @@
     (-> x
         (update-in [:num] #(if (core/< (x :denom) 0) (- %) %))
         (update-in [:denom] #(if (core/< % 0) (- %) %))
-        (update-in [:num] #(clojure.core// % divisor))
-        (update-in [:denom] #(clojure.core// % divisor)))))
+        (update-in [:num] #(core// % divisor))
+        (update-in [:denom] #(core// % divisor)))))
 
 (defn- multiply-rationals [x y]
   (cond
@@ -116,8 +116,8 @@
   (cond
    (and (rational? x) (rational? y))
    (let [denom-gcd (gcd (x :denom) (y :denom))
-         lcm-multiplier-x (clojure.core// (y :denom) denom-gcd)
-         lcm-multiplier-y (clojure.core// (x :denom) denom-gcd)]
+         lcm-multiplier-x (core// (y :denom) denom-gcd)
+         lcm-multiplier-y (core// (x :denom) denom-gcd)]
      (reduce-rational
       (-> x
           (update-in [:num] #(core/+ (core/* lcm-multiplier-x %) (core/* lcm-multiplier-y (y :num))))
