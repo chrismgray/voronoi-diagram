@@ -20,6 +20,9 @@
     (new-rational i 1)
     i))
 
+(defn- infinite? [x]
+  (and (symbol? x) (= x :infinity)))
+
 (defn- should-be-rational? [& x]
   (cond
    (empty? x)
@@ -28,6 +31,8 @@
    :integer
    (every? #(or (rational? %) (integer? %)) x)
    :rational
+   (some infinite? x)
+   :infinite
    :else
    :float))
 
@@ -52,7 +57,9 @@
         xs (rest x)]
     (if (empty? xs)
       (new-rational 1 x1)
-      (reduce / (new-rational x1 (first xs)) (rest xs)))))
+      (if (some #(= 0 %) xs)
+        :infinite
+        (reduce / (new-rational x1 (first xs)) (rest xs))))))
 
 (defn- divide-rationals [x y]
   (if (integer? y)
@@ -65,6 +72,13 @@
     (if (empty? xs)
       (/ 1 x1)
       (reduce divide-rationals (divide-rationals x1 (first xs)) (rest xs)))))
+
+(defmethod / :infinite [& x]
+  (let [x1 (first x)
+        xs (rest x)]
+    (if (or (empty? xs) (infinite? x1))
+      :infinite
+      0)))
 
 (defmethod / :float [& x]
   (->> x
@@ -102,6 +116,11 @@
 (defmethod * :rational [& x]
   (reduce multiply-rationals x))
 
+(defmethod * :infinite [& x]
+  (if (some #(= 0 %) x)
+    0
+    :infinity))
+
 (defmethod * :float [& x]
   (->> x
        (map to-float)
@@ -132,6 +151,9 @@
 (defmethod + :rational [& x]
   (reduce add-rationals x))
 
+(defmethod + :infinite [& x]
+  :infinity)
+
 (defmethod + :float [& x]
   (->> x
        (map to-float)
@@ -150,6 +172,9 @@
     (if (empty? xs)
       (update-in x1 [:num] core/-)
       (reduce - (+ x1 (- (first xs))) (rest xs)))))
+
+(defmethod - :infinite [& x]
+  :infinity)
 
 (defmethod - :float [& x]
   (->> x
@@ -238,3 +263,7 @@
   (->> x
        (map to-float)
        (apply core/=)))
+
+(defmethod = :infinite [& x]
+  (apply core/= x))
+

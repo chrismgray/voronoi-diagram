@@ -1,14 +1,13 @@
 (ns voronoi-diagram.seg
   (:require [voronoi-diagram.pt :as pt])
-  (:use [voronoi-diagram.rationals :only [/ + * - < > <= >= =]])
-  (:use-macros [voronoi-diagram.infinity :only [possibly-infinite]]))
+  (:use [voronoi-diagram.rationals :only [/ + * - < > <= >= =]]))
 
 (defn infinite? [x]
   (= x :infinity))
 
 (defn new-seg [e1 e2 & neighbor]
-  (let [slope (possibly-infinite (/ (- (e1 :y) (e2 :y)) (- (e1 :x) (e2 :x))))
-        y-intercept (possibly-infinite (- (e1 :y) (possibly-infinite (* slope (e1 :x)))))]
+  (let [slope (/ (- (e1 :y) (e2 :y)) (- (e1 :x) (e2 :x)))
+        y-intercept (- (e1 :y) (* slope (e1 :x)))]
     {:e1 e1 :e2 e2 :neighbor (first neighbor) :slope slope :y-intercept y-intercept}))
 
 (defn all-same? [pred coll]
@@ -58,8 +57,8 @@
       (if (infinite? (s2 :slope))
         (let [x (get-in s2 [:e1 :x])]
           (pt/new-pt x (+ (* (s1 :slope) x) (s1 :y-intercept))))
-        (let [x (possibly-infinite (/ (- (s2 :y-intercept) (s1 :y-intercept))
-                                      (- (s1 :slope) (s2 :slope))))]
+        (let [x (/ (- (s2 :y-intercept) (s1 :y-intercept))
+                      (- (s1 :slope) (s2 :slope)))]
           (pt/new-pt x (+ (* (s1 :slope) x) (s1 :y-intercept))))))))
 
 (defn intersection-on-seg? [s1 s2]
@@ -80,8 +79,8 @@
         s1-y (s1 :y)
         s2-x (s2 :x)
         s2-y (s2 :y)
-        original-slope (possibly-infinite (/ (- s2-y s1-y) (- s2-x s1-x)))
-        bisector-slope (possibly-infinite (- (possibly-infinite (/ 1 original-slope))))
+        original-slope (/ (- s2-y s1-y) (- s2-x s1-x))
+        bisector-slope (- (/ 1 original-slope))
         midpoint (pt/new-pt (/ (+ s1-x s2-x) 2) (/ (+ s1-y s2-y) 2))
         y-intercept (if (infinite? bisector-slope) nil (- (midpoint :y) (* bisector-slope (midpoint :x))))
         dummy-seg (if (infinite? bisector-slope)
