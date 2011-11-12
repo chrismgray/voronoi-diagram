@@ -1,4 +1,5 @@
 (ns voronoi-diagram.rect
+  (:use [voronoi-diagram.rationals :only [<= >= < > = to-float]] )
   (:require [voronoi-diagram.seg :as seg]
             [voronoi-diagram.pt :as pt]))
 
@@ -58,7 +59,7 @@
       [(seg/new-seg (pt/new-pt (if (= (prev-pt :x) (left-x left-rec))
                                  (left-x left-rec)
                                  (right-x right-rec)) (bottom-y left-rec)) (pt/new-pt 0 0))] ; second pt is a dummy
-      (let [highest-seg (apply max-key #(get-in % [0 :e1 :y]) possibilities-lower-than)]
+      (let [highest-seg (apply max-key #(to-float ( get-in % [0 :e1 :y])) possibilities-lower-than)]
         highest-seg))))
 
 (defn first-segs [left-rec right-rec]
@@ -75,30 +76,30 @@
                                                                 (get-in right-rec [:regions x1-site])
                                                                 split-line-x) (keys (left-rec :regions)) (vals (left-rec :regions))))
             ;; of the possibilities, find the seg that starts highest
-            highest-seg (apply max-key #(get-in % [0 :e1 :y]) possibilities)]
+            highest-seg (apply max-key #(to-float (get-in % [0 :e1 :y])) possibilities)]
         ;; if the one that starts the highest is on the bounding-box
         ;; boundary, then find the one that starts the farthest to the right
         (if (= split-line-y (get-in highest-seg [0 :e1 :y]))
           (->> possibilities
                (filter #(= split-line-y (get-in % [0 :e1 :y])))
-               (apply max-key #(get-in % [0 :e1 :x])))
+               (apply max-key #(to-float (get-in % [0 :e1 :x]))))
           (->>  possibilities
                 (filter #(= (left-x left-rec) (get-in % [0 :e1 :x])))
-                (apply max-key #(get-in % [0 :e1 :y])))))
+                (apply max-key #(to-float (get-in % [0 :e1 :y]))))))
       ;; x2 is closer, so it must be one of the two sites
       (let [possibilities (remove nil? (map #(seg/find-bisector x2-site
                                                                 %1
                                                                 (get-in left-rec [:regions x2-site])
                                                                 %2
                                                                 split-line-x) (keys (right-rec :regions)) (vals (right-rec :regions))))
-            highest-seg (apply max-key #(get-in % [1 :e2 :y]) possibilities)]
+            highest-seg (apply max-key #(to-float ( get-in % [1 :e2 :y])) possibilities)]
         (if (= split-line-y (get-in highest-seg [1 :e2 :y]))
           (->>  possibilities
                 (filter #(= split-line-y (get-in % [1 :e2 :y])))
-                (apply min-key #(get-in % [1 :e2 :x])))
+                (apply min-key #(to-float (get-in % [1 :e2 :x]))))
           (->>  possibilities
                 (filter #(= (right-x right-rec) (get-in % [1 :e2 :x])))
-                (apply max-key #(get-in % [1 :e2 :y]))))))))
+                (apply max-key #(to-float (get-in % [1 :e2 :y])))))))))
 
 (defn first-sites [left-rec right-rec]
   (let [s2 (right-rec :top-left-site)

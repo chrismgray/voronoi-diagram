@@ -1,4 +1,5 @@
-(ns voronoi-diagram.pt)
+(ns voronoi-diagram.pt
+  (:use [voronoi-diagram.rationals :only [+ - * < >]]))
 
 (defn new-pt [x y]
   {:x x :y y})

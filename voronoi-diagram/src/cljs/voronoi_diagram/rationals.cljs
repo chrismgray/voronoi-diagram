@@ -10,7 +10,7 @@
     (true? (get num :rational false))
     false))
 
-(defn- to-float [r]
+(defn to-float [r]
   (if (rational? r)
     (core// (r :num) (r :denom))
     r))
@@ -146,7 +146,7 @@
    (and (rational? x) (integer? y))
    (reduce-rational (update-in x [:num] #(core/+ % (core/* y (x :denom)))))
    :else
-   (reduce-rational (update-in y [:num] #(core/+ % (core/* y (y :denom)))))))
+   (reduce-rational (update-in y [:num] #(core/+ % (core/* x (y :denom)))))))
 
 (defmethod + :rational [& x]
   (reduce add-rationals x))
@@ -195,9 +195,8 @@
       [next-val (op (comp-x :num) (comp-y :num))])))
 
 (defn- rational-compare-op [op & x]
-  (->> x
-       (map int->rational)
-       (reduce (partial compare-helper op) [(first x) true] (rest x))))
+  (let [rationals (map int->rational x)]
+       (reduce (partial compare-helper op) [(first rationals) true] (rest rationals))))
 
 (defmulti < should-be-rational?)
 
