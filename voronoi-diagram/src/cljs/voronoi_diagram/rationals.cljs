@@ -6,7 +6,9 @@
   {:rational true :num num :denom denom})
 
 (defn- rational? [num]
-  (true? (get num :rational false)))
+  (if (map? num)
+    (true? (get num :rational false))
+    false))
 
 (defn- to-float [r]
   (if (rational? r)
