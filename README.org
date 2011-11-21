@@ -1,4 +1,5 @@
-#+TITLE: Voronoi Diagram
+
+* Voronoi Diagram
 
 This is an implementation of the divide-and-conquer algorithm for
 computing the Voronoi Diagram of a given set of points.  The core of
