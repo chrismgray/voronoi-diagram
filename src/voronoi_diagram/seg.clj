@@ -59,6 +59,15 @@
                                       (- (s1 :slope) (s2 :slope))))]
           (pt/new-pt x (+ (* (s1 :slope) x) (s1 :y-intercept))))))))
 
+(defn intersection-on-first-seg? [s1 s2]
+  (let [i (intersection s1 s2)]
+    (if (nil? i)
+      false)
+    (pt-on-seg? i s1)))
+
+(defn intersection-on-second-seg? [s1 s2]
+  (intersection-on-first-seg? s2 s1))
+
 (defn intersection-on-seg? [s1 s2]
   (let [i (intersection s1 s2)]
     (if (nil? i)
