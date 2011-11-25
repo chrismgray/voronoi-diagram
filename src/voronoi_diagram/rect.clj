@@ -34,25 +34,32 @@
                                         [(right-x rect) (bottom-y rect)]
                                         [(right-x rect) (top-y rect)])})))
 
-(defn new-rect [top-left bottom-right]
+(defn new-rect
+  "Creates a new rectangle with top-left point and bottom-right point
+   as created by voronoi-diagram.pt/new-pt"
+  [top-left bottom-right]
   {:top-left top-left :bottom-right bottom-right})
 
-(defn inside? [pt rec]
+(defn inside?
+  "Returns true if the pt is inside the rectangle."
+  [pt rec]
   (and (<= (pt :x) (right-x rec))
        (>= (pt :x) (left-x rec))
        (<= (pt :y) (top-y rec))
        (>= (pt :y) (bottom-y rec))))
 
-(defn find-highest-bisector-lower-than [s1 s2 left-rec right-rec prev-pt]
+(defn find-highest-bisector-lower-than
+  "Finds the bisector of one of the two sites s1 or s2 (the one that is not nil)
+   and a site in either left-rec or right-rec depending on which of s1 or s2 is nil.
+   The bisector returned is the bisector whose top endpoint is the highest, but
+   lower than prev-pt."
+  [s1 s2 left-rec right-rec prev-pt]
   (let [bounding-box-x (right-x left-rec)
+        find-bis (fn [x y] (seg/find-bisector x y (get-in left-rec [:regions x]) (get-in right-rec [:regions y])))
         possibilities (remove nil?
-                              (if (= (prev-pt :x) (left-x left-rec))
-                                (map #(seg/find-bisector %1 s2 %2 (get-in right-rec [:regions s2]) bounding-box-x)
-                                          (keys (left-rec :regions))
-                                          (vals (left-rec :regions)))
-                                (map #(seg/find-bisector s1 %1 (get-in left-rec [:regions s1]) %2 bounding-box-x)
-                                     (keys (right-rec :regions))
-                                     (vals (right-rec :regions)))))
+                              (if (nil? s1)
+                                (map find-bis (keys (:regions left-rec)) (repeat s2))
+                                (map find-bis (repeat s1) (keys (:regions right-rec)))))
         possibilities-lower-than (filter #(<= (get-in % [0 :e1 :y]) (prev-pt :y)) possibilities)]
     (if (empty? possibilities-lower-than)
       [(seg/new-seg (pt/new-pt (if (= (prev-pt :x) (left-x left-rec))
@@ -61,62 +68,52 @@
       (let [highest-seg (apply max-key #(get-in % [0 :e1 :y]) possibilities-lower-than)]
         highest-seg))))
 
-(defn first-segs [left-rec right-rec]
-  (let [x1-site (top-left-site right-rec)
-        x2-site (top-right-site left-rec)
-        split-line-x (left-x right-rec)
-        split-line-y (top-y right-rec)
-        split-line-pt (pt/new-pt split-line-x split-line-y)]
-    (if (< (pt/sq-dist x1-site split-line-pt) (pt/sq-dist x2-site split-line-pt))
-      ;; x1 is closer, so it must be one of the two sites
-      (let [possibilities (remove nil? (map #(seg/find-bisector %1
-                                                                x1-site
-                                                                %2
-                                                                (get-in right-rec [:regions x1-site])
-                                                                split-line-x) (keys (left-rec :regions)) (vals (left-rec :regions))))
-            ;; of the possibilities, find the seg that starts highest
-            highest-seg (apply max-key #(get-in % [0 :e1 :y]) possibilities)]
-        ;; if the one that starts the highest is on the bounding-box
-        ;; boundary, then find the one that starts the farthest to the right
-        (if (= split-line-y (get-in highest-seg [0 :e1 :y]))
-          (->> possibilities
-               (filter #(= split-line-y (get-in % [0 :e1 :y])))
-               (apply max-key #(get-in % [0 :e1 :x])))
-          (->>  possibilities
-                (filter #(= (left-x left-rec) (get-in % [0 :e1 :x])))
-                (apply max-key #(get-in % [0 :e1 :y])))))
-      ;; x2 is closer, so it must be one of the two sites
-      (let [possibilities (remove nil? (map #(seg/find-bisector x2-site
-                                                                %1
-                                                                (get-in left-rec [:regions x2-site])
-                                                                %2
-                                                                split-line-x) (keys (right-rec :regions)) (vals (right-rec :regions))))
-            highest-seg (apply max-key #(get-in % [1 :e2 :y]) possibilities)]
-        (if (= split-line-y (get-in highest-seg [1 :e2 :y]))
-          (->>  possibilities
-                (filter #(= split-line-y (get-in % [1 :e2 :y])))
-                (apply min-key #(get-in % [1 :e2 :x])))
-          (->>  possibilities
-                (filter #(= (right-x right-rec) (get-in % [1 :e2 :x])))
-                (apply max-key #(get-in % [1 :e2 :y]))))))))
+(defn first-segs
+  "Finds the first (pair of) segment(s) in the bisector path.
+   We know that this is either defined by the site whose region
+   contains the top-right corner of the left-rec or the site whose
+   region contains the top-left corner of the right-rec."
+  [left-rec right-rec]
+  (let [s1 (left-rec :top-right-site)
+        s2 (right-rec :top-left-site)
+        split-line-pt (pt/new-pt (left-x right-rec) (top-y right-rec))
+        dist (partial pt/sq-dist split-line-pt)
+        find-bis (fn [x y] (seg/find-bisector x y (get-in left-rec [:regions x]) (get-in right-rec [:regions y])))
+        possibilities (remove nil? (if (< (dist s1) (dist s2))
+                                     (map find-bis (repeat s1) (keys (:regions right-rec)))
+                                     (map find-bis (keys (:regions left-rec)) (repeat s2))))
+        highest-seg (apply max-key #(get-in % [0 :e1 :y]) possibilities)]
+    (if (= (get-in highest-seg [0 :e1 :y]) (:y split-line-pt))
+      (->> possibilities
+           (filter #(= (get-in % [0 :e1 :y]) (:y split-line-pt)))
+           (apply min-key #(dist (get-in % [0 :e1]))))
+      highest-seg)))
 
-(defn first-sites [left-rec right-rec]
+(defn first-sites
+  "Finds the first pair of sites in the bisector path."
+  [left-rec right-rec]
   (let [s2 (right-rec :top-left-site)
         s1 (left-rec :top-right-site)
         split-line-x (left-x right-rec)
         split-line-y (top-y right-rec)
         split-line-pt (pt/new-pt split-line-x split-line-y)
+        dist (partial pt/sq-dist split-line-pt)
         first-segs (first-segs left-rec right-rec)
         first-pt (get-in first-segs [0 :e1])]
     (if (not= (first-pt :y) (top-y left-rec))
-      (if (< (pt/sq-dist s2 split-line-pt) (pt/sq-dist s1 split-line-pt))
+      (if (< (dist s2) (dist s1))
         [nil s2 (pt/new-pt (left-x left-rec) (top-y left-rec))]
         [s1 nil (pt/new-pt (right-rec :x2) (top-y right-rec))])
-      (if (< (pt/sq-dist s2 split-line-pt) (pt/sq-dist s1 split-line-pt))
+      (if (< (dist s2) (dist s1))
         [((first first-segs) :neighbor) s2 first-pt]
         [s1 ((second first-segs) :neighbor) first-pt]))))
 
-(defn next-site [s1 s2 left-rec right-rec new-pt]
+(defn next-site
+  "Finds the next site to consider in the bisector-path, given that
+   the previous two sites are s1 and s2.  Returns nil if the bisector
+   path next runs along the left or right edge of the bounding
+   rectangles."
+  [s1 s2 left-rec right-rec new-pt]
   (let [r1 (get-in left-rec [:regions s1])
         r2 (get-in right-rec [:regions s2])
         new-seg (first (filter (partial seg/pt-on-seg? new-pt) (lazy-cat r1 r2)))]
@@ -129,7 +126,12 @@
             (get-in possible-seg [0 :neighbor]))
           nil)))))
 
-(defn next-sites [s1 s2 left-rec right-rec new-pt]
+(defn next-sites
+  "Finds the next pair of sites in the bisector-path, given that s1 and s2
+  are the previous two sites.  If both sites returned are nil, then the
+  bisector path has been completely computed.  If only one of the sites is
+  nil, then the path runs along the left or right edge of the bounding rectangles. "
+  [s1 s2 left-rec right-rec new-pt]
   (let [next-s (next-site s1 s2 left-rec right-rec new-pt)]
     (if (= (new-pt :y) (bottom-y left-rec))
       [nil nil]
@@ -142,6 +144,9 @@
           [next-s s2])))))
 
 (defn sites-list
+  "Returns a lazy list of pairs of sites that define the bisector-path.  When
+   one of the sites is nil, then the bisector-path runs along one of the left
+   or right edge of the bounding rectangles."
   ([left-rec right-rec]
      (let [[s1 s2 first-pt] (first-sites left-rec right-rec)]
        (sites-list s1 s2 left-rec right-rec first-pt)))
@@ -152,12 +157,15 @@
              r2 (get-in right-rec [:regions s2])
              bounding-box-x (right-x left-rec)
              new-pt (if (and s1 s2)
-                      (get-in (seg/find-bisector s1 s2 r1 r2 bounding-box-x) [0 :e2])
+                      (get-in (seg/find-bisector s1 s2 r1 r2) [0 :e2])
                       (get-in (find-highest-bisector-lower-than s1 s2 left-rec right-rec prev-pt) [0 :e1]))
              [next-s1 next-s2] (next-sites s1 s2 left-rec right-rec new-pt)]
          (lazy-seq (cons [s1 s2] (sites-list next-s1 next-s2 left-rec right-rec new-pt)))))))
 
-(defn insinuate-segs [segs region]
+(defn insinuate-segs
+  "Puts the segments into the region.  May extend some of the edges in the
+   region so that they meet the new segments."
+  [segs region]
   (let [e1 ((first segs) :e1)
         e2 ((last segs) :e2)
         good-segs (->> (lazy-cat region region)
@@ -169,19 +177,30 @@
         next-seg (seg/new-seg ((last segs) :e2) (e2-seg :e2) (e2-seg :neighbor))]
     (remove #(= (% :e1) (% :e2)) (concat (rest good-segs) (list prev-seg) segs (list next-seg)))))
 
-(defn insinuate-seg [seg region]
+(defn insinuate-seg
+  "Puts a single segment into the region."
+  [seg region]
   (insinuate-segs (list seg) region))
 
-(defn merge-helper [[m left-rec right-rec] [s1 s2]]
+(defn merge-helper
+  "Given a map and a pair of sites, associates the sites with the part of the
+   actual bisector-path (that is, the segments in the bisector-path) that is
+   between the two sites, as well as any previous parts of the bisector-path
+   that have been computed."
+  [[m left-rec right-rec] [s1 s2]]
   (let [r1 (get-in left-rec [:regions s1])
         r2 (get-in right-rec [:regions s2])
         bounding-box-x (right-x left-rec)]
     (cond (nil? s1)
-          [(assoc m s2 (conj (get m s2 []) nil)) left-rec right-rec]
+          (if (nil? (last (m s2))) ; don't put multiple nils in a row
+            [m left-rec right-rec]
+            [(assoc m s2 (conj (get m s2 []) nil)) left-rec right-rec])
           (nil? s2)
-          [(assoc m s1 (vec (cons nil (get m s1 [])))) left-rec right-rec]
+          (if (nil? (first (m s1))) ; don't put multiple nils in a row
+            [m left-rec right-rec]
+            [(assoc m s1 (vec (cons nil (get m s1 [])))) left-rec right-rec])
           :else
-          (let [[down-bisector up-bisector] (seg/find-bisector s1 s2 r1 r2 bounding-box-x)]
+          (let [[down-bisector up-bisector] (seg/find-bisector s1 s2 r1 r2)]
            [(-> m
                 (assoc s1 (vec (cons up-bisector (get m s1 []))))
                 (assoc s2 (conj (get m s2 []) down-bisector))) left-rec right-rec]))))
@@ -217,9 +236,9 @@
                              (assert (not (every? nil? [curr prev next-seg])) (str %))))
                      ;; segs with nil in front; not hitting end is okay
                      (cons nil %)
-                     ;; segs with nils in front and back
+                     ;; segs 
                      %
-                     ;; segs with nils in back
+                     ;; segs with nil in back
                      (conj (vec (rest %)) nil)))) left-rec right-rec))
 
 (defn region-insinuator [rec [site segs]]
@@ -307,6 +326,7 @@
         [bisector-path-map _ _] (reduce merge-helper [{} left-rec right-rec] sites-to-consider)
         [bisector-path-map _ _] (reduce bisector-path-map-fix [bisector-path-map left-rec right-rec] (keys bisector-path-map))
         rec (assoc rec :regions (merge (left-rec :regions) (right-rec :regions)))
+        _ (prn sites-to-consider)
         rec (reduce region-insinuator rec bisector-path-map)
         first-seg (first (first-segs left-rec right-rec))
         new-top-left-site (if (= (get-in first-seg [:e1 :x]) (left-rec :x1))

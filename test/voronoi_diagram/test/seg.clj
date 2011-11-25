@@ -103,7 +103,7 @@
         r1 (rect/new-region [-3 -2] [2 -2] [2 2] [-3 2])
         r2 (rect/new-region [-3 -3] [3 -3] [3 3] [-3 3])]
     (is (= (new-seg (pt/new-pt -2 2) (pt/new-pt 2 -2) s1)
-           (first (find-bisector s1 s2 r1 r2 0))))))
+           (first (find-bisector s1 s2 r1 r2))))))
 
 (deftest intersection-on-seg
   (let [s1 (new-seg (pt/new-pt -1 0) (pt/new-pt 1 0))
@@ -199,7 +199,7 @@
              :y-intercept -8})
         s1 {:x -4, :y 3}
         s2 {:x 1, :y 5}]
-    (is (not (nil? (find-bisector s1 s2 r1 r2 0))))))
+    (is (not (nil? (find-bisector s1 s2 r1 r2))))))
 
 (deftest new-inside-test
   (let [r1 (list

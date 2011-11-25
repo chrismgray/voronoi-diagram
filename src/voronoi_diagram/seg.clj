@@ -72,7 +72,7 @@
    regions if we pretend that the bounding boxes don't exist.
 
   We assume that s1 is to the left of s2."
-  [s1 s2 r1 r2 bounding-box-x]
+  [s1 s2 r1 r2]
   (let [s1-x (s1 :x)
         s1-y (s1 :y)
         s2-x (s2 :x)
