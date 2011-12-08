@@ -12,7 +12,7 @@
 
 (defn to-float [r]
   (if (rational? r)
-    (clojure.core// (r :num) (r :denom))
+    (core// (r :num) (r :denom))
     r))
 
 (defn- int->rational [i]
